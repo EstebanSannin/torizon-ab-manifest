@@ -1,0 +1,58 @@
+name: build
+
+# First-cut pipeline: manual, single machine x backend, on the m920x self-hosted
+# runner. Next iterations add the full matrix, a weekly schedule, GitHub Releases
+# publishing, and builds.json for the landing page.
+
+on:
+  workflow_dispatch:
+    inputs:
+      machine:
+        description: Target machine
+        type: choice
+        default: genericx86-64
+        options: [genericx86-64, verdin-am62p, verdin-imx8mp]
+      backend:
+        description: Updater backend
+        type: choice
+        default: rauc
+        options: [rauc, swupdate]
+      channel:
+        description: Manifest channel
+        type: choice
+        default: release
+        options: [release, nightly, next]
+
+concurrency:
+  # one build per machine+backend at a time (shared sstate/tree on the host)
+  group: build-${{ github.event.inputs.machine }}-${{ github.event.inputs.backend }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: [self-hosted, m920x]
+    timeout-minutes: 480
+    steps:
+      - name: Checkout manifest repo (for ci/build.sh)
+        uses: actions/checkout@v4
+
+      - name: Build ${{ inputs.machine }} / ${{ inputs.backend }}
+        env:
+          MACHINE: ${{ inputs.machine }}
+          CHANNEL: ${{ inputs.channel }}
+          OUT_DIR: ${{ github.workspace }}/artifacts
+        run: |
+          case "${{ inputs.backend }}" in
+            rauc)     export DISTRO=torizon-ab-rauc ;;
+            swupdate) export DISTRO=torizon-ab ;;
+          esac
+          chmod +x ci/build.sh
+          ./ci/build.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: torizon-ab-${{ inputs.machine }}-${{ inputs.backend }}-${{ inputs.channel }}
+          path: ${{ github.workspace }}/artifacts/**
+          if-no-files-found: error
+          retention-days: 14
