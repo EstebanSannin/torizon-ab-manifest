@@ -1,8 +1,8 @@
 name: build
 
-# First-cut pipeline: manual, single machine x backend, on the m920x self-hosted
-# runner. Next iterations add the full matrix, a weekly schedule, GitHub Releases
-# publishing, and builds.json for the landing page.
+# M1 pipeline: build the OSTree-free A/B variant on the m920x self-hosted runner
+# and publish each build as a GitHub Release. Runs weekly (full matrix) and on
+# demand (targeted, or "all"/"both" to fan out).
 
 on:
   workflow_dispatch:
@@ -11,41 +11,70 @@ on:
         description: Target machine
         type: choice
         default: genericx86-64
-        options: [genericx86-64, verdin-am62p, verdin-imx8mp]
+        options: [all, genericx86-64, verdin-am62p, verdin-imx8mp]
       backend:
         description: Updater backend
         type: choice
         default: rauc
-        options: [rauc, swupdate]
+        options: [both, rauc, swupdate]
       channel:
         description: Manifest channel
         type: choice
         default: release
         options: [release, nightly, next]
-
-concurrency:
-  # one build per machine+backend at a time (shared sstate/tree on the host)
-  group: build-${{ github.event.inputs.machine }}-${{ github.event.inputs.backend }}
-  cancel-in-progress: false
+  schedule:
+    - cron: '0 2 * * 0'          # weekly — Sunday 02:00 UTC
 
 permissions:
-  contents: write        # create releases + upload assets via GITHUB_TOKEN
+  contents: write                # create releases + upload assets via GITHUB_TOKEN
 
 jobs:
+  # Expand the build matrix: full set for the weekly schedule (or all/both),
+  # otherwise the single combo the dispatch asked for.
+  setup:
+    runs-on: [self-hosted, m920x]
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+      channel: ${{ steps.gen.outputs.channel }}
+    steps:
+      - id: gen
+        run: |
+          set -e
+          ALL='[{"machine":"genericx86-64","backend":"rauc"},{"machine":"genericx86-64","backend":"swupdate"},{"machine":"verdin-am62p","backend":"rauc"},{"machine":"verdin-am62p","backend":"swupdate"},{"machine":"verdin-imx8mp","backend":"rauc"},{"machine":"verdin-imx8mp","backend":"swupdate"}]'
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "matrix={\"include\":$ALL}" >> "$GITHUB_OUTPUT"
+            echo "channel=release" >> "$GITHUB_OUTPUT"
+          else
+            m='${{ inputs.machine }}'; b='${{ inputs.backend }}'
+            [ "$m" = all ]  && machines='genericx86-64 verdin-am62p verdin-imx8mp' || machines="$m"
+            [ "$b" = both ] && backends='rauc swupdate' || backends="$b"
+            inc=""
+            for mm in $machines; do for bb in $backends; do inc="$inc{\"machine\":\"$mm\",\"backend\":\"$bb\"},"; done; done
+            echo "matrix={\"include\":[${inc%,}]}" >> "$GITHUB_OUTPUT"
+            echo "channel=${{ inputs.channel }}" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    needs: setup
     runs-on: [self-hosted, m920x]
     timeout-minutes: 480
+    strategy:
+      fail-fast: false           # one machine/backend failing must not sink the rest
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    concurrency:
+      group: build-${{ matrix.machine }}-${{ matrix.backend }}
+      cancel-in-progress: false
     steps:
       - name: Checkout manifest repo (for ci/*.sh)
         uses: actions/checkout@v4
 
-      - name: Build ${{ inputs.machine }} / ${{ inputs.backend }}
+      - name: Build ${{ matrix.machine }} / ${{ matrix.backend }}
         env:
-          MACHINE: ${{ inputs.machine }}
-          CHANNEL: ${{ inputs.channel }}
+          MACHINE: ${{ matrix.machine }}
+          CHANNEL: ${{ needs.setup.outputs.channel }}
           OUT_DIR: ${{ github.workspace }}/artifacts
         run: |
-          case "${{ inputs.backend }}" in
+          case "${{ matrix.backend }}" in
             rauc)     export DISTRO=torizon-ab-rauc ;;
             swupdate) export DISTRO=torizon-ab ;;
           esac
@@ -65,7 +94,7 @@ jobs:
       - name: Upload manifest (checksums + metadata) to the run
         uses: actions/upload-artifact@v4
         with:
-          name: metadata-${{ inputs.machine }}-${{ inputs.backend }}-${{ inputs.channel }}
+          name: metadata-${{ matrix.machine }}-${{ matrix.backend }}
           path: |
             ${{ github.workspace }}/artifacts/SHA256SUMS
             ${{ github.workspace }}/artifacts/metadata.env

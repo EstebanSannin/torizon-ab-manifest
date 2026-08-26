@@ -37,7 +37,9 @@ echo ">> upstream at $SHA"
 
 # Our own files — never overwritten or deleted by the sync. Upstream also ships a
 # root README.md (and .gitlab-ci.yml etc.); excluding OURS keeps ours authoritative.
-OURS=(torizon-ab scripts README.md UPSTREAM.env .gitignore .git)
+# NB: keep this in sync with every top-level path WE add (ci, .github, docs, ...)
+# or an upstream sync's `rsync --delete` will wipe them.
+OURS=(torizon-ab ci .github docs scripts README.md UPSTREAM.env .gitignore .git)
 
 # Stage the pinned upstream tree, then mirror it onto our root while preserving
 # OURS. rsync --delete removes upstream files that disappeared between revs;

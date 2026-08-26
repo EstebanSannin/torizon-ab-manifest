@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torizon OS A/B — Builds</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#fff; --fg:#1b1f24; --muted:#5b6570; --border:#e3e7ec;
+    --accent:#2f6df6; --accent-fg:#fff; --code:#f0f2f5; --ok:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1216; --card:#171b21; --fg:#e6e9ee; --muted:#98a2b0; --border:#262c34;
+      --accent:#5b8cff; --accent-fg:#0f1216; --code:#0c0f13; --ok:#4cc38a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:960px;margin:0 auto;padding:2rem 1.1rem 4rem}
+  header h1{font-size:1.7rem;margin:0 0 .3rem}
+  header p{color:var(--muted);margin:.2rem 0}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--code);border:1px solid var(--border);border-radius:8px;
+    padding:.8rem 1rem;overflow-x:auto;font-size:.86rem}
+  .pill{display:inline-block;font-size:.72rem;font-weight:600;padding:.1rem .5rem;
+    border-radius:999px;border:1px solid var(--border);color:var(--muted);vertical-align:middle}
+  .pill.rauc{color:var(--accent);border-color:var(--accent)}
+  .pill.swupdate{color:var(--ok);border-color:var(--ok)}
+  section{margin-top:2.2rem}
+  h2{font-size:1.15rem;border-bottom:1px solid var(--border);padding-bottom:.4rem}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding:1rem 1.1rem;margin:.8rem 0}
+  .card h3{margin:.1rem 0 .1rem;font-size:1rem}
+  .card .ver{color:var(--muted);font-size:.82rem;word-break:break-all}
+  .assets{list-style:none;margin:.7rem 0 0;padding:0;display:grid;gap:.35rem}
+  .assets li{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;
+    font-size:.9rem;border-top:1px dashed var(--border);padding-top:.35rem}
+  .assets .sz{color:var(--muted);font-size:.8rem;white-space:nowrap}
+  .muted{color:var(--muted)}
+  .note{font-size:.85rem;color:var(--muted)}
+  footer{margin-top:3rem;color:var(--muted);font-size:.82rem}
+  .status{color:var(--muted);font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Torizon OS — A/B builds <span class="pill">OSTree-free</span></h1>
+    <p>Community builds of the dual-rootfs A/B Torizon OS variant with two updater
+       backends — <span class="pill rauc">RAUC</span> and
+       <span class="pill swupdate">SWUpdate</span> — delivered over Torizon Cloud
+       (aktualizr generic secondary). No OSTree.</p>
+  </header>
+
+  <section>
+    <h2>Build it yourself</h2>
+    <p class="note">One command gets you a reproducible tree pinned to the tested revisions:</p>
+    <pre>repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b main \
+          -m torizon-ab/tdx/release.xml
+repo sync
+# then: source setup-environment build, DISTRO=torizon-ab | torizon-ab-rauc, bitbake</pre>
+  </section>
+
+  <section>
+    <h2>Latest builds</h2>
+    <div id="builds" class="status">Loading builds from GitHub Releases…</div>
+  </section>
+
+  <section>
+    <h2>Flashing</h2>
+    <p class="note"><strong>x86 (.wic):</strong> decompress and write to the target disk.</p>
+    <pre>xz -d torizon-minimal-ab-*.wic.xz
+sudo bmaptool copy --bmap torizon-minimal-ab-*.wic.bmap torizon-minimal-ab-*.wic /dev/sdX
+# (or: sudo dd if=torizon-minimal-ab-*.wic of=/dev/sdX bs=4M status=progress)</pre>
+    <p class="note"><strong>Verdin (Toradex boards):</strong> Toradex Easy Installer feed — coming soon.</p>
+  </section>
+
+  <section>
+    <h2>Updating over the air</h2>
+    <p class="note">Provision the device to Torizon Cloud, then push the payload
+       (<code>.raucb</code> for RAUC, <code>.swu</code> for SWUpdate) as a package for
+       the <code>&lt;machine&gt;-rootfs</code> secondary. Verify every download against
+       <code>SHA256SUMS</code>.</p>
+  </section>
+
+  <footer>
+    Built automatically from
+    <a href="https://github.com/EstebanSannin/torizon-ab-manifest">EstebanSannin/torizon-ab-manifest</a>.
+    Development signing keys — not for production.
+  </footer>
+</div>
+
+<script>
+const REPO = "EstebanSannin/torizon-ab-manifest";
+const mb = n => n < 1024*1024 ? (n/1024).toFixed(0)+" KB" : (n/1048576).toFixed(0)+" MB";
+// name = torizon-ab-<backend>-<machine>-<version>; version starts X.Y.Z so a
+// machine like "genericx86-64" (digit after a dash) isn't split mid-name.
+const parse = name => {
+  const m = /^torizon-ab-(rauc|swupdate)-(.+)-(\d+\.\d+\.\d+.*)$/.exec(name);
+  return m ? {backend:m[1], machine:m[2], version:m[3]} : null;
+};
+const kind = a =>
+  a.name.endsWith(".raucb") ? "RAUC bundle" :
+  a.name.endsWith(".swu")   ? "SWUpdate payload" :
+  a.name.endsWith(".wic.xz")? "Flashable image (xz)" :
+  a.name.endsWith(".bmap")  ? "bmap" :
+  a.name==="SHA256SUMS"     ? "Checksums" :
+  a.name==="metadata.env"   ? "Build metadata" : a.name;
+
+fetch(`https://api.github.com/repos/${REPO}/releases?per_page=100`, {headers:{Accept:"application/vnd.github+json"}})
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(rels => {
+    const el = document.getElementById("builds");
+    if (!rels.length){ el.textContent = "No builds published yet."; return; }
+    // newest per machine+backend first; show all, grouped by machine
+    const byMachine = {};
+    for (const rel of rels){
+      const p = parse(rel.name || rel.tag_name); if(!p) continue;
+      (byMachine[p.machine] ||= []).push({rel, p});
+    }
+    el.classList.remove("status"); el.innerHTML = "";
+    for (const machine of Object.keys(byMachine).sort()){
+      const h = document.createElement("h3"); h.style.margin="1.4rem 0 .3rem";
+      h.textContent = machine; el.appendChild(h);
+      for (const {rel, p} of byMachine[machine]){
+        const card = document.createElement("div"); card.className="card";
+        const assets = (rel.assets||[]).map(a =>
+          `<li><a href="${a.browser_download_url}">${kind(a)}</a>
+               <span class="sz">${a.name} · ${mb(a.size)}</span></li>`).join("");
+        card.innerHTML =
+          `<h3>${machine} <span class="pill ${p.backend}">${p.backend}</span></h3>
+           <div class="ver">${p.version} · <a href="${rel.html_url}">release</a></div>
+           <ul class="assets">${assets}</ul>`;
+        el.appendChild(card);
+      }
+    }
+  })
+  .catch(e => {
+    document.getElementById("builds").textContent =
+      "Could not load releases ("+e+"). See the repository's Releases page.";
+  });
+</script>
+</body>
+</html>

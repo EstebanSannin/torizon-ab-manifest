@@ -94,6 +94,13 @@ if [ -n "$wic" ]; then
   [ -f "$wic.bmap" ] && cp -L "$wic.bmap" "$OUT_DIR/"
 fi
 
+# GitHub rewrites '+' in release-asset names, which would desync them from
+# SHA256SUMS. Pre-sanitize '+' -> '-' (matching the TAG) so names == checksums.
+for f in "$OUT_DIR"/*; do
+  b="$(basename "$f")"
+  case "$b" in *+*) mv -- "$f" "$OUT_DIR/${b//+/-}" ;; esac
+done
+
 # build metadata (drives the Release tag/name + later builds.json).
 # OS_VERSION is parsed from the .wic name: torizon-minimal-ab-<machine>-<version>.wic
 OS_VERSION="unknown"
