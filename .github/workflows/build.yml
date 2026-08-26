@@ -28,12 +28,15 @@ concurrency:
   group: build-${{ github.event.inputs.machine }}-${{ github.event.inputs.backend }}
   cancel-in-progress: false
 
+permissions:
+  contents: write        # create releases + upload assets via GITHUB_TOKEN
+
 jobs:
   build:
     runs-on: [self-hosted, m920x]
     timeout-minutes: 480
     steps:
-      - name: Checkout manifest repo (for ci/build.sh)
+      - name: Checkout manifest repo (for ci/*.sh)
         uses: actions/checkout@v4
 
       - name: Build ${{ inputs.machine }} / ${{ inputs.backend }}
@@ -49,10 +52,22 @@ jobs:
           chmod +x ci/build.sh
           ./ci/build.sh
 
-      - name: Upload artifacts
+      - name: Publish to GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ART_DIR: ${{ github.workspace }}/artifacts
+          TARGET_COMMITISH: ${{ github.sha }}
+        run: |
+          chmod +x ci/publish-release.sh
+          ./ci/publish-release.sh
+
+      - name: Upload manifest (checksums + metadata) to the run
         uses: actions/upload-artifact@v4
         with:
-          name: torizon-ab-${{ inputs.machine }}-${{ inputs.backend }}-${{ inputs.channel }}
-          path: ${{ github.workspace }}/artifacts/**
+          name: metadata-${{ inputs.machine }}-${{ inputs.backend }}-${{ inputs.channel }}
+          path: |
+            ${{ github.workspace }}/artifacts/SHA256SUMS
+            ${{ github.workspace }}/artifacts/metadata.env
           if-no-files-found: error
           retention-days: 14

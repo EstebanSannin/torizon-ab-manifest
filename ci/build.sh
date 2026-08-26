@@ -93,7 +93,26 @@ if [ -n "$wic" ]; then
   xz -T0 -c "$wic" > "$OUT_DIR/$(basename "$wic").xz"
   [ -f "$wic.bmap" ] && cp -L "$wic.bmap" "$OUT_DIR/"
 fi
-# checksums
-( cd "$OUT_DIR" && sha256sum * > SHA256SUMS )
+
+# build metadata (drives the Release tag/name + later builds.json).
+# OS_VERSION is parsed from the .wic name: torizon-minimal-ab-<machine>-<version>.wic
+OS_VERSION="unknown"
+if [ -n "$wic" ]; then
+  v="$(basename "$wic")"; v="${v#torizon-minimal-ab-${MACHINE}-}"; OS_VERSION="${v%.wic}"
+fi
+BUILD_ID="torizon-ab-${BACKEND}-${MACHINE}-${OS_VERSION}"
+TAG="${BUILD_ID//+/-}"                      # '+' is awkward in a git tag/URL
+cat > "$OUT_DIR/metadata.env" <<EOF
+MACHINE=$MACHINE
+BACKEND=$BACKEND
+CHANNEL=$CHANNEL
+OS_VERSION=$OS_VERSION
+BUILD_ID=$BUILD_ID
+TAG=$TAG
+DATE_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+EOF
+
+# checksums (payload + image + bmap; not the metadata file itself)
+( cd "$OUT_DIR" && sha256sum -- * 2>/dev/null | grep -v ' metadata.env$' > SHA256SUMS )
 echo "== artifacts in $OUT_DIR =="
 ls -lhL "$OUT_DIR"
