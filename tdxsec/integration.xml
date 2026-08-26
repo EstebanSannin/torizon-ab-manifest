@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <include name="tdxref/integration.xml"/>
+
+  <remote alias="repo" fetch="https://github.com/toradex" name="githt"/>
+
+  <project name="meta-toradex-security" path="layers/meta-toradex-security" remote="githt" revision="scarthgap-7.x.y"/>
+</manifest>

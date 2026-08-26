@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <include name="base/integration.xml" />
+  <include name="bsp/integration-nxp.xml" />
+  <include name="bsp/integration-ti.xml"/>
+  <include name="bsp/integration-tdx.xml" />
+
+  <remote alias="repo" fetch="https://gitlab.com/toradex/rd/testing/som-fct" name="gitltdx"/>
+
+  <project name="meta-toradex-distro.git" path="layers/meta-toradex-distro" remote="tdx" revision="scarthgap-7.x.y"/>
+  <project name="meta-toradex-somfctdut.git" path="layers/meta-toradex-somfctdut" remote="gitltdx" revision="scarthgap-7.x.y">
+    <copyfile dest="export_somfctdut" src="buildconf/export"/>
+  </project>
+</manifest>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <include name="base/pinned.xml"/>
+  <include name="bsp/pinned-nxp.xml"/>
+  <include name="bsp/pinned-ti.xml"/>
+  <include name="bsp/pinned-tdx.xml"/>
+
+  <remote alias="repo" fetch="https://code.qt.io/yocto" name="gitqt"/>
+  <remote alias="repo" fetch="https://gitlab.com/toradex/rd/testing/som-fct" name="gitltdx"/>
+  <remote alias="repo" fetch="https://github.com/Igalia" name="githigalia"/>
+
+  <project name="meta-qt6.git" path="layers/meta-qt6" remote="gitqt" revision="0d0a68d78bcce4b50182e30140c17eee20226198" upstream="6.10"/>
+  <project name="meta-webkit.git" path="layers/meta-webkit" remote="githigalia" revision="2d29669a3d78e462276044f3f8bde0e4dec33696" upstream="scarthgap"/>
+  <project name="meta-security" path="layers/meta-security" remote="yocto" revision="97e482b71688b62ac1109d16e89368122f039cbf" upstream="scarthgap"/>
+  <project name="meta-toradex-demos.git" path="layers/meta-toradex-demos" remote="tdx" revision="28b67de839fd5cb32da42b65a8a700781fb72144" upstream="scarthgap-7.x.y"/>
+  <project name="meta-toradex-distro.git" path="layers/meta-toradex-distro" remote="tdx" revision="c64f24727eaa741c2546bcf03bac5411e8a2f993" upstream="scarthgap-7.x.y"/>
+
+  <project name="meta-toradex-somfctdut.git" path="layers/meta-toradex-somfctdut" remote="gitltdx" revision="68287142eaea95303f7ea6a03283623eda54a9f7" upstream="scarthgap-7.x.y">
+    <copyfile dest="export_somfctdut" src="buildconf/export"/>
+  </project>
+
+  <project name="meta-toradex-somfctcm.git" path="layers/meta-toradex-somfctcm" remote="gitltdx" revision="40186a949c09b72a087b463731c992141161984a" upstream="scarthgap-7.x.y">
+    <copyfile dest="export_somfctcm" src="buildconf/export"/>
+  </project>
+
+</manifest>

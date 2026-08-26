@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote alias="repo" fetch="https://git.yoctoproject.org/git" name="yocto"/>
+  <remote alias="repo" fetch="https://git.openembedded.org" name="oe"/>
+  <remote alias="repo" fetch="https://github.com/uptane" name="uptane"/>
+  <remote alias="repo" fetch="https://github.com/torizon" name="torizon"/>
+
+  <default sync-j="4"/>
+
+  <project name="bitbake" path="sources/bitbake" remote="oe" revision="2.8"/>
+  <project name="meta-arm" path="sources/meta-arm" remote="yocto" revision="scarthgap"/>
+  <project name="meta-ti" path="sources/meta-ti" remote="yocto" revision="scarthgap"/>
+  <project name="meta-yocto" path="sources/meta-yocto" remote="yocto" revision="scarthgap"/>
+  <project name="openembedded-core" path="sources/oe-core" remote="oe" revision="scarthgap"/>
+  <project name="meta-updater" path="sources/meta-updater" remote="uptane" revision="scarthgap"/>
+  <project name="meta-virtualization" path="sources/meta-virtualization" remote="yocto" revision="scarthgap"/>
+  <project name="meta-openembedded" path="sources/meta-openembedded" remote="oe" revision="scarthgap"/>
+  <project name="meta-toradex-torizon" path="sources/meta-toradex-torizon" remote="torizon" revision="scarthgap-7.x.y">
+    <linkfile dest="setup-environment" src="scripts/setup-environment"/>
+  </project>
+</manifest>

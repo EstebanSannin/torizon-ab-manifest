@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote alias="repo" fetch="https://github.com/openembedded" name="oe"/>
+  <remote alias="repo" fetch="https://git.yoctoproject.org" name="yocto"/>
+
+  <default sync-j="4"/>
+
+  <project name="bitbake.git" path="layers/openembedded-core/bitbake" remote="oe" revision="0880963fea4d91a034e4a6e007d23f98658ab986" upstream="2.8"/>
+  <project name="meta-openembedded.git" path="layers/meta-openembedded" remote="oe" revision="b0c2c648a1af89e7a8dd4c2ec841f3bc0ed0ccb9" upstream="scarthgap"/>
+  <project name="meta-yocto" path="layers/meta-yocto" remote="yocto" revision="ca5a51aadaf651881d640688dc3e1e123aa30bf6" upstream="scarthgap"/>
+  <project name="openembedded-core.git" path="layers/openembedded-core" remote="oe" revision="737293bead3e7b994347e47f09bc69437479d50c" upstream="scarthgap"/>
+</manifest>

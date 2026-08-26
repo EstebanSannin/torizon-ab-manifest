@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote alias="repo" fetch="https://github.com/synaptics-astra" name="synaptics"/>
+  <remote alias="repo" fetch="https://github.com/uptane" name="uptane"/>
+  <remote alias="repo" fetch="https://github.com/torizon" name="torizon"/>
+  <remote alias="repo" fetch="https://git.yoctoproject.org" name="yp"/>
+  <remote alias="repo" fetch="https://code.qt.io/yocto" name="qt"/>
+  <remote alias="repo" fetch="https://github.com/OSSystems" name="ossystems"/>
+  <remote alias="repo" fetch="https://github.com/kraj" name="kraj"/>
+  <remote alias="repo" fetch="https://github.com/openembedded" name="oe"/>
+  <remote alias="repo" fetch="https://github.com/sbabic" name="swupdate"/>
+
+  <default sync-j="4" sync-s="true"/>
+
+  <!--
+    Update the hashes of these external layers when leaving feaure freeze (to the tip of the
+    appropriate branches).
+  -->
+
+  <project name="meta-synaptics" path="layers/meta-synaptics" remote="synaptics" revision="990a66e0111040ead67b0357a0330c55ca62a602"/>
+  <project name="meta-updater" path="layers/meta-updater" remote="uptane" revision="14d693d72551d8759c818b00d32bcdf9fc4c6063"/>
+
+  <project name="meta-browser" path="layers/meta-browser" remote="ossystems" revision="85eeb6b50883d22c977396f5e8fe211a7961cf2e"/>
+  <project name="meta-clang" path="layers/meta-clang" remote="kraj" revision="7cf54f70cebe897d844f649024322bb096d7cb50"/>
+  <project name="meta-openembedded" path="layers/meta-openembedded" remote="oe" revision="29a044218285fdc7fcdd63d5f0929cb3a27b6fed"/>
+  <project name="meta-swupdate" path="layers/meta-swupdate" remote="swupdate" revision="438e8ea2d98aa5fd5f571f84db154dbe9062b37a"/>
+  <project name="meta-virtualization" path="layers/meta-virtualization" remote="yp" revision="31fb0a22e0aa65b430a40fbc59dbf239eb8745aa" upstream="scarthgap"/>
+  <project name="meta-selinux" path="layers/meta-selinux" remote="yp" revision="48f745109a1ecea9afe2a74d41dbd90fa7b370af" upstream="scarthgap"/>
+  <project name="meta-lts-mixins" path="layers/meta-lts-mixins" remote="yp" revision="c19b6da5a3afd3c892b3b1b44983e993ac6d5308" upstream="scarthgap/rust"/>
+  <project name="meta-qt5" path="layers/meta-qt5" remote="qt" revision="554fc20c326a9b205169331644f0cb471619e63c" upstream="upstream/scarthgap"/>
+  <project name="poky" path="layers/poky" remote="yp" revision="e146cbbc73e10fecfb7f1c26e8567a5a2873c51b"/>
+
+  <project name="meta-toradex-torizon" path="layers/meta-toradex-torizon" remote="torizon" revision="scarthgap-7.x.y">
+    <linkfile dest="setup-environment" src="scripts/setup-environment"/>
+  </project>
+</manifest>

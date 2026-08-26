@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <include name="base/pinned.xml"/>
+  <include name="bsp/pinned-nxp.xml"/>
+  <include name="bsp/pinned-ti.xml"/>
+  <include name="bsp/pinned-tdx.xml"/>
+
+  <remote alias="repo" fetch="https://github.com/uptane" name="uptane"/>
+  <remote alias="repo" fetch="https://github.com/toradex" name="toradex"/>
+  <remote alias="repo" fetch="https://github.com/torizon" name="torizon"/>
+  <remote alias="repo" fetch="https://github.com/iris-GmbH" name="iris"/>
+
+  <!--
+    When doing a monthly or quarterly release, the hashes below must be copied from "torizon/integration.xml",
+    except for layer meta-toradex-torizon which in the integration manifest is referenced by branch but here
+    should be referenced by the corresponding hash.
+  -->
+  <project name="meta-security" path="layers/meta-security" remote="yocto" revision="b13f1705d723650de61277670c8a76aadea4cfdd"/>
+  <project name="meta-updater" path="layers/meta-updater" remote="uptane" revision="14d693d72551d8759c818b00d32bcdf9fc4c6063"/>
+  <project name="meta-virtualization" path="layers/meta-virtualization" remote="yocto" revision="89da4f56b4c510059f8dc1527d289d9fd4fef133"/>
+  <project name="meta-cyclonedx" path="layers/meta-cyclonedx" remote="iris" revision="63d3b3495b85467b396790a0072fd73703a0987c"/>
+  <project name="meta-toradex-distro.git" path="layers/meta-toradex-distro" remote="tdx" revision="c64f24727eaa741c2546bcf03bac5411e8a2f993"/>
+  <project name="meta-toradex-security" path="layers/meta-toradex-security" remote="toradex" revision="f85dfd8bc6170eb8679f2ee4d98051fb13d5f821"/>
+  <project name="meta-toradex-torizon" path="layers/meta-toradex-torizon" remote="torizon" revision="6869626aa2e98cd0863f0d698fb592c7d645dcf0">
+    <linkfile dest="setup-environment" src="scripts/setup-environment"/>
+  </project>
+</manifest>

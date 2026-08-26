@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote alias="repo" fetch="https://github.com/meta-qt5" name="githq"/>
+
+  <include name="base/pinned.xml"/>
+  <include name="bsp/pinned-nxp.xml"/>
+  <include name="bsp/pinned-ti.xml"/>
+  <include name="bsp/pinned-tdx.xml"/>
+
+  <project name="meta-qt5.git" path="layers/meta-qt5" remote="githq" revision="227cf5e7b64c93dfc1a45f235c466db8c3fd8707" upstream="scarthgap"/>
+  <project name="meta-security" path="layers/meta-security" remote="yocto" revision="b13f1705d723650de61277670c8a76aadea4cfdd" upstream="scarthgap"/>
+  <project name="meta-toradex-demos.git" path="layers/meta-toradex-demos" remote="tdx" revision="28b67de839fd5cb32da42b65a8a700781fb72144" upstream="scarthgap-7.x.y"/>
+  <project name="meta-toradex-distro.git" path="layers/meta-toradex-distro" remote="tdx" revision="c64f24727eaa741c2546bcf03bac5411e8a2f993" upstream="scarthgap-7.x.y">
+    <copyfile dest="export" src="buildconf/export"/>
+  </project>
+</manifest>

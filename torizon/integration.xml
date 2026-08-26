@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <include name="base/pinned.xml"/>
+  <include name="bsp/pinned-nxp.xml"/>
+  <include name="bsp/pinned-ti.xml"/>
+
+  <!--
+    non-feature-freeze: include "bsp/integration-tdx.xml"
+    feature-freeze:     include "bsp/pinned-tdx.xml"
+  -->
+  <include name="bsp/integration-tdx.xml"/>
+
+  <remote alias="repo" fetch="https://github.com/uptane" name="uptane"/>
+  <remote alias="repo" fetch="https://github.com/toradex" name="toradex"/>
+  <remote alias="repo" fetch="https://github.com/torizon" name="torizon"/>
+  <remote alias="repo" fetch="https://github.com/iris-GmbH" name="iris"/>
+
+  <project name="meta-security" path="layers/meta-security" remote="yocto" revision="b13f1705d723650de61277670c8a76aadea4cfdd"/>
+  <project name="meta-updater" path="layers/meta-updater" remote="uptane" revision="14d693d72551d8759c818b00d32bcdf9fc4c6063"/>
+  <project name="meta-virtualization" path="layers/meta-virtualization" remote="yocto" revision="31fb0a22e0aa65b430a40fbc59dbf239eb8745aa"/>
+  <project name="meta-cyclonedx" path="layers/meta-cyclonedx" remote="iris" revision="966af3e3e345135fd66688d6836801372d7c808e"/>
+
+  <!--
+    meta-toradex-distro:
+    non-feature-freeze: revision set to "scarthgap-7.x.y" (branch name)
+    feature-freeze:     revision set to the same as in "tdxref/default.xml" (hash)
+  -->
+  <project name="meta-toradex-distro.git" path="layers/meta-toradex-distro" remote="tdx" revision="scarthgap-7.x.y"/>
+
+  <!--
+    meta-toradex-security:
+    non-feature-freeze: revision set to "scarthgap-7.x.y" (branch name)
+    feature-freeze:     revision set to latest commit in "scarthgap-7.x.y" (hash)
+  -->
+  <project name="meta-toradex-security" path="layers/meta-toradex-security" remote="toradex" revision="scarthgap-7.x.y"/>
+
+  <project name="meta-toradex-torizon" path="layers/meta-toradex-torizon" remote="torizon" revision="scarthgap-7.x.y">
+    <linkfile dest="setup-environment" src="scripts/setup-environment"/>
+  </project>
+</manifest>

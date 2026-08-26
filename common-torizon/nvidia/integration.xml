@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote alias="repo" fetch="https://github.com/OE4T" name="tegra"/>
+  <remote alias="repo" fetch="https://git.yoctoproject.org" name="yp"/>
+  <remote alias="repo" fetch="https://github.com/openembedded" name="oe"/>
+
+  <remote alias="repo" fetch="https://github.com/uptane"  name="uptane"/>
+  <remote alias="repo" fetch="https://github.com/torizon" name="torizon"/>
+
+  <default sync-j="4" sync-s="true"/>
+
+  <project name="meta-openembedded" remote="oe" path="layers/meta-openembedded" revision="ec0469748be4159fb83fb0fa0148d786484c88cf" upstream="scarthgap"/>
+  <project name="openembedded-core" remote="oe" path="layers/openembedded-core" revision="a9a785d7fa0cfe2a9087dbcde0ef9f0d2a441375" upstream="scarthgap"/>
+  <project name="bitbake" path="layers/openembedded-core/bitbake" remote="oe" revision="a4daa14312d659333984aa1ae58ddfe0c96392f1"/>
+  <project name="meta-yocto" remote="yp" path="layers/meta-yocto" revision="94d19f9d8392f8a125764df0f8eda04205c7e76c" upstream="scarthgap"/>
+
+  <project name="meta-virtualization" remote="yp" path="layers/meta-virtualization" revision="f92518e20530edfebca45e4170e11460949a5303" upstream="scarthgap"/>
+
+  <project name="meta-tegra" remote="tegra" path="layers/meta-tegra" revision="447c21467f65be2389f68a189b6871f13729d222" upstream="scarthgap"/>
+
+  <project name="meta-updater" path="layers/meta-updater" remote="uptane" revision="b275153c9c8ea09e27d41db9f2faba3ebf92d2c2"/>
+  <project name="meta-toradex-torizon" path="layers/meta-toradex-torizon" remote="torizon" revision="scarthgap-7.x.y">
+    <linkfile dest="setup-environment" src="scripts/setup-environment"/>
+    </project>
+</manifest>
