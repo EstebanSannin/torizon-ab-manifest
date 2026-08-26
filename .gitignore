@@ -1,0 +1,2 @@
+# repo working dirs, if someone runs `repo init` inside a clone by mistake
+.repo/

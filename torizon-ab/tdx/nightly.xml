@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Toradex boards (tdx vendor), NIGHTLY channel (upstream integration.xml).
+  Same overlay, floating/nightly upstream pins. Used by the nightly build server.
+-->
+<manifest>
+  <!-- TODO(upstream-restructure): -> torizon/tdx/integration.xml (nightly) -->
+  <include name="torizon/integration.xml"/>
+  <include name="torizon-ab/overlay.xml"/>
+</manifest>

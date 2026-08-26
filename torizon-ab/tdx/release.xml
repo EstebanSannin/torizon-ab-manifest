@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Toradex boards (tdx vendor), RELEASE channel (monthly/quarterly).
+  Covers the machines we build today: verdin-am62p, verdin-imx8mp, genericx86-64.
+
+  Shape = upstream vendor+channel manifest  +  our vendor-agnostic overlay.
+
+  NOTE ON THE INCLUDE PATH (upstream is mid-restructure):
+    * TODAY the upstream entry point is  torizon/default.xml.
+    * AFTER Toradex's restructure (Slack option b + release.xml rename) it becomes
+      torizon/tdx/release.xml.
+  We vendor a pinned upstream rev, so switch the include below to match whichever
+  rev we pinned. Keeping it as a single <include> makes that a one-line change.
+-->
+<manifest>
+  <!-- TODO(upstream-restructure): -> torizon/tdx/release.xml once vendored rev has it -->
+  <include name="torizon/default.xml"/>
+  <include name="torizon-ab/overlay.xml"/>
+</manifest>

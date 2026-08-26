@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Toradex boards (tdx vendor), NEXT channel (extint/master).
+  Bleeding-edge upstream; same overlay.
+-->
+<manifest>
+  <!-- TODO(upstream-restructure): -> torizon/tdx/next.xml -->
+  <include name="torizon/next.xml"/>
+  <include name="torizon-ab/overlay.xml"/>
+</manifest>
