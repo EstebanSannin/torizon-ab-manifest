@@ -17,18 +17,20 @@
 <manifest>
   <remote alias="repo" fetch="https://github.com" name="ab-github"/>
 
-  <!-- SWUpdate backend. Upstream pins this under common-torizon/syn; we reuse a
-       known-good rev here so it is available for every vendor, not just syn. -->
+  <!-- SWUpdate backend (scarthgap branch). Pinned to the exact rev the tested
+       build-rauc tree uses. NB: meta-rauc/meta-swupdate 'master' targets the NEXT
+       Yocto series (wrynose) and is REJECTED by a scarthgap core — must track the
+       scarthgap branch. -->
   <project name="sbabic/meta-swupdate" path="layers/meta-swupdate" remote="ab-github"
-           revision="cb709b865a56be48cb17cbad149b69f793f3888b"/>
+           revision="7da41c5f2eb58c95cf5b312cf0b34fdfc7bb1e4e" upstream="scarthgap"/>
 
-  <!-- RAUC backend. Not present in the upstream manifest; we add it. -->
-  <!-- TODO(pin): set to the meta-rauc SHA matching the tested RAUC builds. -->
+  <!-- RAUC backend (scarthgap branch), not in the upstream manifest. Pinned to the
+       tested rev; LAYERSERIES_COMPAT = "nanbield scarthgap". -->
   <project name="rauc/meta-rauc" path="layers/meta-rauc" remote="ab-github"
-           revision="master"/>
+           revision="d63878f20eba7a85ecf53566e7a3377e78bb46ac" upstream="scarthgap"/>
 
-  <!-- The A/B variant layer. -->
-  <!-- TODO(pin): bump to a release tag/SHA instead of tracking main. -->
+  <!-- The A/B variant layer. Tracks main during active dev; the release channel
+       should later pin a tag/SHA. -->
   <project name="EstebanSannin/meta-torizon-ab" path="layers/meta-torizon-ab" remote="ab-github"
            revision="main"/>
 </manifest>
