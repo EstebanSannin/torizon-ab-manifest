@@ -23,12 +23,20 @@ hdr=(-H "Authorization: Bearer $GH_TOKEN"
 body="$(printf 'Automated build (torizon-ab pipeline).\n\n- machine: `%s`\n- backend: `%s`\n- channel: `%s`\n- os version: `%s`\n\n### SHA256SUMS\n```\n%s\n```\n' \
   "$MACHINE" "$BACKEND" "$CHANNEL" "$OS_VERSION" "$(cat "$ART_DIR/SHA256SUMS")")"
 
-# 1) find-or-create the release for this tag
-rid="$(curl -fsS "${hdr[@]}" "$API/repos/$REPO/releases/tags/$TAG" 2>/dev/null | jq -r '.id // empty')"
+# 1) find-or-create the release for this tag.
+#    NB: no `-f` on the lookup — a 404 (tag not yet released) is expected and must
+#    NOT abort under `pipefail`; we detect "missing" by the absence of an id.
+rid="$(curl -sS "${hdr[@]}" "$API/repos/$REPO/releases/tags/$TAG" | jq -r '.id // empty')"
 if [ -z "$rid" ]; then
   payload="$(jq -n --arg t "$TAG" --arg n "$BUILD_ID" --arg b "$body" --arg c "${TARGET_COMMITISH:-}" \
     '{tag_name:$t, name:$n, body:$b} + (if $c=="" then {} else {target_commitish:$c} end)')"
-  rid="$(curl -fsS "${hdr[@]}" -X POST "$API/repos/$REPO/releases" -d "$payload" | jq -r '.id')"
+  resp="$(curl -sS "${hdr[@]}" -X POST "$API/repos/$REPO/releases" -d "$payload")"
+  rid="$(printf '%s' "$resp" | jq -r '.id // empty')"
+  if [ -z "$rid" ]; then
+    echo "release create failed:" >&2
+    printf '%s\n' "$resp" | jq -r '.message // .' >&2
+    exit 1
+  fi
   echo "created release $TAG (id=$rid)"
 else
   # refresh the notes on an existing tag (idempotent re-runs)
