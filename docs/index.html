@@ -59,20 +59,20 @@
   .toggle{display:inline-flex;align-items:center;gap:.45rem;font-size:.85rem;color:var(--muted);cursor:pointer;user-select:none}
   .toggle input{accent-color:var(--accent)}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:1rem}
   .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
-    padding:1rem 1.1rem;box-shadow:var(--shadow)}
+    padding:1rem 1.1rem;box-shadow:var(--shadow);overflow:hidden;min-width:0}
   .card .top{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
   .card h3{margin:0;font-size:1.02rem;letter-spacing:-.01em}
   .card .ver{color:var(--muted);font-size:.82rem;margin:.35rem 0 .1rem;word-break:break-all}
   .card .when{color:var(--muted);font-size:.78rem}
   .assets{list-style:none;margin:.8rem 0 0;padding:0;display:grid;gap:.15rem}
   .assets li{display:flex;justify-content:space-between;gap:.8rem;align-items:center;
-    padding:.42rem 0;border-top:1px solid var(--border);font-size:.9rem}
+    padding:.42rem 0;border-top:1px solid var(--border);font-size:.9rem;min-width:0}
   .assets li:first-child{border-top:0}
-  .assets .a-name{display:flex;flex-direction:column;min-width:0}
-  .assets .a-kind{font-weight:600}
-  .assets .a-sz{color:var(--muted);font-size:.76rem;white-space:nowrap}
+  .assets .a-name{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
+  .assets .a-kind{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .assets .a-sz{color:var(--muted);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .btnrow{display:flex;gap:.4rem;align-items:center;flex-shrink:0}
   .dl{display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;font-weight:600;
     padding:.3rem .6rem;border-radius:8px;background:var(--accent);color:var(--on-accent)}
@@ -206,7 +206,7 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 function assetRow(a){
   const [kind,hint]=kindOf(a);
   return `<li>
-    <span class="a-name"><span class="a-kind">${esc(kind)}</span>
+    <span class="a-name" title="${esc(a.name)}"><span class="a-kind">${esc(kind)}</span>
       <span class="a-sz">${esc(a.name)}${hint?" · "+hint:""} · ${mb(a.size)}</span></span>
     <span class="btnrow">
       <a class="dl" href="${a.browser_download_url}" download>↓</a>
