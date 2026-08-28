@@ -40,9 +40,9 @@ jobs:
       - id: gen
         run: |
           set -e
-          # Proven-buildable combos only. am62p-swupdate is excluded until wired
-          # + HW-validated (meta-torizon-ab roadmap B15).
-          ALL='[{"machine":"genericx86-64","backend":"rauc"},{"machine":"genericx86-64","backend":"swupdate"},{"machine":"verdin-am62p","backend":"rauc"},{"machine":"verdin-imx8mp","backend":"rauc"},{"machine":"verdin-imx8mp","backend":"swupdate"}]'
+          # Full matrix: 3 machines x 2 backends. am62p-swupdate wired + HW
+          # boot-validated (meta-torizon-ab roadmap B15).
+          ALL='[{"machine":"genericx86-64","backend":"rauc"},{"machine":"genericx86-64","backend":"swupdate"},{"machine":"verdin-am62p","backend":"rauc"},{"machine":"verdin-am62p","backend":"swupdate"},{"machine":"verdin-imx8mp","backend":"rauc"},{"machine":"verdin-imx8mp","backend":"swupdate"}]'
           if [ "${{ github.event_name }}" = "schedule" ]; then
             echo "matrix={\"include\":$ALL}" >> "$GITHUB_OUTPUT"
             echo "channel=release" >> "$GITHUB_OUTPUT"
