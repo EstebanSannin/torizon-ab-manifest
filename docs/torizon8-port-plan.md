@@ -1,9 +1,9 @@
 # Torizon OS 8 ("wrynose") port — plan
 
 Status: **verdin-imx8mp × SWUpdate and × RAUC ported and hardware-validated**
-(local + Torizon Cloud) on the integration channel (2026-10-28). Torizon 7
-(scarthgap-7.x.y) stays the fallback baseline. Next: re-run SWUpdate on hardware
-with the shared handler fix, then the am62p variants, then the full matrix.
+(local + Torizon Cloud) on the integration channel (2026-10-28), SWUpdate re-run
+after the shared handler fixes. Torizon 7 (scarthgap-7.x.y) stays the fallback
+baseline. Next: the am62p variants, then the full matrix.
 
 ## Hardware validation — verdin-imx8mp × SWUpdate (Verdin iMX8M Plus on Dahlia)
 
@@ -36,7 +36,19 @@ handlers confirm only after greenboot passed the boot; the RAUC trial is mirrore
 in `upgrade_available` so greenboot reboots a failed trial; `altbootcmd` is
 guaranteed; U-Boot env variables are tested by value. Details in meta-torizon-ab
 `docs/updates-and-rollback.md`. **The SWUpdate handler changed after its
-validation and should be re-run on hardware.**
+validation; it was re-run on hardware (below).**
+
+## SWUpdate re-test with the shared fixes (verdin-imx8mp)
+
+| Step | Result |
+|------|--------|
+| Fresh flash + first boot | slot A, `altbootcmd` seeded, no U-Boot env errors |
+| Cloud, good `.swu` | **Completed / UpToDate** |
+| Cloud, bad `.swu` | first failed boot held on purpose (greenboot auto-reboot masked): `complete-install` → `need-completion`, trial kept armed; then attempts 2–3 → bootlimit → altbootcmd → old slot → cloud **`success: false`, rolled back** |
+
+Open: on SWUpdate aktualizr does not start on a failed boot (the health check is
+`RequiredBy=boot-complete.target`), but on RAUC, before the fixes, it did run on
+the failed trial boot. Cause not yet understood; the handler check covers it.
 
 Flashing note: erase the whole **boot0** before writing imx-boot. The U-Boot env
 lives at its end; a previous image's env survives otherwise and the new U-Boot
