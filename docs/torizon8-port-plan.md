@@ -1,8 +1,9 @@
 # Torizon OS 8 ("wrynose") port — plan
 
-Status: **verdin-imx8mp × SWUpdate ported and hardware-validated** on the
-integration channel (2026-10-28). Torizon 7 (scarthgap-7.x.y) stays the fallback
-baseline. Next: RAUC on imx8mp, then the am62p variants, then the full matrix.
+Status: **verdin-imx8mp × SWUpdate and × RAUC ported and hardware-validated**
+(local + Torizon Cloud) on the integration channel (2026-10-28). Torizon 7
+(scarthgap-7.x.y) stays the fallback baseline. Next: re-run SWUpdate on hardware
+with the shared handler fix, then the am62p variants, then the full matrix.
 
 ## Hardware validation — verdin-imx8mp × SWUpdate (Verdin iMX8M Plus on Dahlia)
 
@@ -18,6 +19,24 @@ All on real hardware, driven headless (power/recovery control + serial):
 | Rollback | failing required health check on B → 3 attempts → `Bootlimit (3) exceeded` → altbootcmd → slot A |
 | Torizon Cloud, good update | provision → upload (`POST /packages`, 187 MB) → launch → aktualizr → slot switch → cloud **Completed / UpToDate** |
 | Torizon Cloud, bad update | rollback-test image → 3 failed boots → back to the good slot → cloud **`success: false`, "rootfs update failed; rolled back"** |
+
+## Hardware validation — verdin-imx8mp × RAUC
+
+| Step | Result |
+|------|--------|
+| Build | green after following meta-rauc to `/usr/lib/rauc` |
+| Flash + first boot | slot A, `rauc.slot=A`, env seeded (incl. `altbootcmd`) |
+| Local A→B | `rauc_actions.sh install` → B booted, both slots good, `complete-install` ok |
+| Cloud, good bundle | **Completed / UpToDate** |
+| Cloud, bad bundle | 3 failed boots → bootlimit → altbootcmd → old slot → cloud **`success: false`, rolled back** (also on a board with an older `boot.scr`) |
+
+The first cloud bad-bundle run failed validation: no rollback, and the cloud got
+**success** for the broken update. Fixed in meta-torizon-ab (both backends): the
+handlers confirm only after greenboot passed the boot; the RAUC trial is mirrored
+in `upgrade_available` so greenboot reboots a failed trial; `altbootcmd` is
+guaranteed; U-Boot env variables are tested by value. Details in meta-torizon-ab
+`docs/updates-and-rollback.md`. **The SWUpdate handler changed after its
+validation and should be re-run on hardware.**
 
 Flashing note: erase the whole **boot0** before writing imx-boot. The U-Boot env
 lives at its end; a previous image's env survives otherwise and the new U-Boot
