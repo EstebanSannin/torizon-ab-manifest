@@ -12,25 +12,22 @@
     - meta-torizon-ab : the A/B variant layer itself
 
   Revisions MUST be pinned to the exact commits we build & test (reproducibility).
-  TODO(pin): replace the revisions below with the tested SHAs before first release.
+  meta-swupdate + meta-rauc are pinned; TODO(pin): meta-torizon-ab still tracks a branch.
 -->
 <manifest>
   <remote alias="repo" fetch="https://github.com" name="ab-github"/>
 
-  <!-- SWUpdate backend (scarthgap branch). Pinned to the exact rev the tested
-       build-rauc tree uses. NB: meta-rauc/meta-swupdate 'master' targets the NEXT
-       Yocto series (wrynose) and is REJECTED by a scarthgap core — must track the
-       scarthgap branch. -->
+  <!-- SWUpdate backend, wrynose branch (Torizon OS 8). Each Yocto series has its
+       own branch; another series' branch is rejected by LAYERSERIES_COMPAT. -->
   <project name="sbabic/meta-swupdate" path="layers/meta-swupdate" remote="ab-github"
-           revision="7da41c5f2eb58c95cf5b312cf0b34fdfc7bb1e4e" upstream="scarthgap"/>
+           revision="b5dcb9511266bc62f9b2277f95bbd67ae995e79e" upstream="wrynose"/>
 
-  <!-- RAUC backend (scarthgap branch), not in the upstream manifest. Pinned to the
-       tested rev; LAYERSERIES_COMPAT = "nanbield scarthgap". -->
+  <!-- RAUC backend, wrynose branch. Not in the upstream manifest at all. -->
   <project name="rauc/meta-rauc" path="layers/meta-rauc" remote="ab-github"
-           revision="d63878f20eba7a85ecf53566e7a3377e78bb46ac" upstream="scarthgap"/>
+           revision="38da0e5866a953e664001ba90b5edad68d68cd5d" upstream="wrynose"/>
 
-  <!-- The A/B variant layer. Tracks main during active dev; the release channel
-       should later pin a tag/SHA. -->
+  <!-- The A/B variant layer. Tracks the Torizon 8 port branch until it is
+       validated; the release channel should later pin a tag/SHA. -->
   <project name="EstebanSannin/meta-torizon-ab" path="layers/meta-torizon-ab" remote="ab-github"
-           revision="main"/>
+           revision="port/torizon8"/>
 </manifest>
