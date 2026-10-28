@@ -46,9 +46,12 @@ validation; it was re-run on hardware (below).**
 | Cloud, good `.swu` | **Completed / UpToDate** |
 | Cloud, bad `.swu` | first failed boot held on purpose (greenboot auto-reboot masked): `complete-install` → `need-completion`, trial kept armed; then attempts 2–3 → bootlimit → altbootcmd → old slot → cloud **`success: false`, rolled back** |
 
-Open: on SWUpdate aktualizr does not start on a failed boot (the health check is
-`RequiredBy=boot-complete.target`), but on RAUC, before the fixes, it did run on
-the failed trial boot. Cause not yet understood; the handler check covers it.
+Why aktualizr confirmed the failed RAUC trial boot: aktualizr normally does not
+start on a failed boot (the health check is `RequiredBy=boot-complete.target`),
+but stock Torizon's `redboot-auto-reboot` starts it with `--ignore-dependencies`
+when the boot failed and `upgrade_available` is not 1 ("update not in progress,
+device requires intervention"). The RAUC trial did not set the flag, so that path
+ran and the old handler confirmed. Reproduced and confirmed on the board.
 
 Flashing note: erase the whole **boot0** before writing imx-boot. The U-Boot env
 lives at its end; a previous image's env survives otherwise and the new U-Boot
