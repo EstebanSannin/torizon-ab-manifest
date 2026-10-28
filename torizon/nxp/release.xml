@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote alias="repo" fetch="https://github.com/nxp-imx" name="nxp"/>
+  <remote alias="repo" fetch="https://github.com/nxp-imx-support" name="nxp-support"/>
+
+  <remote alias="repo" name="community"   fetch="https://github.com/Freescale"/>
+  <remote alias="repo" name="yp"          fetch="https://git.yoctoproject.org"/>
+  <remote alias="repo" name="oe"          fetch="https://github.com/openembedded"/>
+  <remote alias="repo" name="kraj"        fetch="https://github.com/kraj"/>
+  <remote alias="repo" name="ossystems"   fetch="https://github.com/OSSystems"/>
+  <remote alias="repo" name="qt"          fetch="https://github.com/YoeDistro"/>
+  <remote alias="repo" name="timesys"     fetch="https://github.com/TimesysGit"/>
+
+
+  <remote alias="repo" fetch="https://github.com/uptane" name="uptane"/>
+  <remote alias="repo" fetch="https://github.com/torizon" name="torizon"/>
+
+
+  <default sync-j="4" sync-s="true"/>
+
+  <project name="bitbake" remote="oe" path="sources/bitbake" revision="f0df79b6b56f6a69067adf974978d9405077f246" upstream="2.18"/>
+  <project name="openembedded-core" remote="oe" path="sources/openembedded-core" revision="883075157987ca300af59185b903d6d1977234c3" upstream="wrynose"/>
+  <project name="meta-yocto" remote="yp" path="sources/meta-yocto" revision="ddeeba423ff0565b8f1192f16072b5993d5ea6a0" upstream="wrynose"/>
+  <project name="meta-openembedded" remote="oe" path="sources/meta-openembedded" revision="47d7dbdd10890bbd429bc0cccbe14435c37e5af1" upstream="wrynose"/>
+  <project name="meta-clang" remote="kraj" path="sources/meta-clang" revision="ef0d22f21910a0c30c967eeb17d8f209806e2d81" upstream="wrynose"/>
+
+  <project name="fsl-community-bsp-base" remote="community" path="sources/base" revision="1d8c41be87979d063b34a98044cc5f8e1279eb2c" upstream="wrynose"/>
+
+  <project name="meta-freescale" remote="community" path="sources/meta-freescale" revision="c35d3dc9b0a1b42a80e41b78307d4612abdfdc71" upstream="wrynose"/>
+  <project name="meta-freescale-3rdparty" remote="community" path="sources/meta-freescale-3rdparty" revision="26d8b36a72acf1458a2520e4e9f4d654a4ba77e4" upstream="wrynose"/>
+  <project name="meta-freescale-distro" remote="community" path="sources/meta-freescale-distro" revision="4464f38b4aa618b5942f5e35dd25cff590f410a6" upstream="wrynose"/>
+  <project name="meta-freescale-ml" remote="community" path="sources/meta-freescale-ml" revision="1330790bc6cdd3808260a16383d928e05a0e0eeb" upstream="wrynose"/>
+
+
+  <project name="meta-arm" remote="yp" path="sources/meta-arm" revision="9dab8bdd4991973faa6dfc5b3c607f4c09cc1cdb" upstream="wrynose"/>
+  <project name="meta-qt6" remote="qt" path="sources/meta-qt6" revision="62e6eb6003f2ad3a8952519e7a3dd7df700c26fc" upstream="6.11"/>
+  <project name="meta-browser" remote="ossystems" path="sources/meta-browser" revision="6395e0c3946c189cd02d636bd120c7439ae8c244" upstream="wrynose"/>
+  <project name="meta-security" remote="yp" path="sources/meta-security" revision="2703974d5e2d61b221dffa302c2e059a522adbf3" upstream="wrynose"/>
+  <project name="meta-timesys" remote="timesys" path="sources/meta-timesys" revision="bf4ff1bb4c85bb7a1c65bc6f2cc6188ff5b76ef2" upstream="wrynose"/>
+  <project name="meta-virtualization" remote="yp" path="sources/meta-virtualization" revision="70a5d5a65d7237cfe978961fa4d8765c895cddc8" upstream="wrynose"/>
+
+  <project name="meta-imx" path="sources/meta-imx" remote="nxp" revision="840f8da0f3350bf389067f84922c7436efde0653" upstream="wrynose-6.18.37-2.1.0">
+    <linkfile src="tools/imx-setup-release.sh" dest="imx-setup-release.sh"/>
+  </project>
+
+  <project name="meta-nxp-connectivity" remote="nxp" path="sources/meta-nxp-connectivity" revision="12e139aa362660e2a7545b2924076038958e5144" upstream="imx_matter_2026_q1-post"/>
+  <project name="meta-nxp-demo-experience" remote="nxp-support" path="sources/meta-nxp-demo-experience" revision="dd4e742a339c51f90dec8ea59c62add1f7f157fa" upstream="wrynose-6.18.37-2.1.0"/>
+
+  <project name="meta-updater" path="sources/meta-updater" remote="uptane" revision="c73c905b2d358518aaec77893d5f4d1f2165470c" upstream="wrynose"/>
+  <project name="meta-torizon" path="sources/meta-torizon" remote="torizon" revision="91f1ae57670269aa24edf53b3ed4646707eb0019" upstream="wrynose-8.x.y"/>
+  <project name="meta-torizon-bsp" path="sources/meta-torizon-bsp" remote="torizon" revision="4a7e3cbc189991a02ed7a7b93040241002ed96fb" upstream="wrynose-8.x.y">
+    <linkfile dest="setup-environment" src="scripts/setup-environment"/>
+  </project>
+</manifest>
