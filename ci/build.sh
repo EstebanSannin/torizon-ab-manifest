@@ -6,13 +6,13 @@
 # artifacts into $OUT_DIR: the OTA payload (.raucb|.swu), the flashable image
 # compressed (.wic.xz + .bmap), and SHA256SUMS.
 #
-# Designed for a self-hosted runner on m920x, but is plain bash + docker so it can
+# Designed for a self-hosted runner, but is plain bash + docker so it can
 # run anywhere with the crops image + network.
 #
 # Required env:
 #   MACHINE   e.g. genericx86-64 | verdin-am62p | verdin-imx8mp
 #   DISTRO    torizon-ab (SWUpdate) | torizon-ab-rauc (RAUC)
-# Optional env (sane defaults for m920x):
+# Optional env (defaults suit a self-hosted build host):
 #   CHANNEL         release | integration | next       (default: release)
 #   VENDOR          manifest vendor dir (torizon-ab/<vendor>/) (default: tdx)
 #   AB_ROOT         base dir for the persistent trees, one per manifest branch
