@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Toradex boards (tdx vendor), NIGHTLY channel (upstream integration.xml).
-  Same overlay, floating/nightly upstream pins. Used by the nightly build server.
+  Toradex boards (tdx vendor), INTEGRATION channel: upstream's floating pins
+  (meta-torizon / meta-torizon-bsp at branch tip). Same overlay.
 -->
 <manifest>
   <include name="torizon/tdx/integration.xml"/>

@@ -40,7 +40,7 @@ Grounded in the current files — these are the only places that change:
    - `meta-torizon-ab`: `main` → a wrynose-compatible branch (e.g. `port/torizon8`)
      until the port is proven, then pin a tag/SHA.
 
-3. **Channel include path** — `torizon-ab/tdx/{release,nightly,next}.xml`
+3. **Channel include path** — `torizon-ab/tdx/{release,integration,next}.xml` (renamed from nightly to mirror upstream)
    - Each still `<include>`s `torizon/default.xml` with a TODO to switch to the
      restructured entry point. Switch the one `<include>` line to whatever the 8
      rev actually ships (likely `torizon/tdx/<channel>.xml`). One-liner each.
@@ -74,10 +74,22 @@ Grounded in the current files — these are the only places that change:
 - **meta-swupdate / meta-rauc** both have `wrynose` branches; the tdx manifest
   ships neither (meta-swupdate only under `syn`), so no path collision.
 - **crops:** `torizon/crops:wrynose-8.x.y` exists.
-- CI `bblayers.conf` mirrors `meta-torizon-bsp/conf/template/bblayers.conf`,
-  overlay layers in `EXTRALAYERS`. `local.conf` template is unchanged from 7.
-- Nightly/integration builds need `DISTROOVERRIDES .= ":use-head-next"` (upstream
-  `setup-environment` adds it); not needed for the release channel.
+- CI `bblayers.conf` is **generated** by `ci/mkconf.sh` from the pinned
+  `meta-torizon-bsp/conf/template/bblayers.conf`, overlay layers in `EXTRALAYERS`
+  (layers the template lists but the manifest doesn't fetch are dropped with a
+  warning). `local.conf` template is unchanged from 7.
+- **Build the integration channel.** Upstream's tdx `release.xml` still pins a
+  meta-torizon-bsp 57 commits behind whose template lists the abandoned
+  `meta-toradex-distro`; integration floats meta-torizon(-bsp) at tip.
+  Integration/next builds add `DISTROOVERRIDES .= ":use-head-next"` + buildhistory
+  (as upstream's `setup-environment` does).
+- **Image content:** per-machine packages moved to meta-torizon-bsp's
+  `torizon-image-machine` class (applied to every image via `IMAGE_CLASSES`);
+  `alsa-ucm-conf-tdx` folded into oe-core `alsa-ucm-conf`; NXP kernel renamed
+  `linux-toradex` → `linux-toradex-imx` (6.18); wks files must live in
+  `files/wic/`; `meta-torizon-bsp` sits at priority 91.
+- **Known deltas vs upstream torizon-base.inc:** no `kernel-devsrc` (fixed
+  1536 MiB slots). The `tpm` DISTRO_FEATURES warning predates the port.
 
 ## Execution order (iMX8MP × SWUpdate first)
 

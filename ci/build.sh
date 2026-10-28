@@ -13,12 +13,14 @@
 #   MACHINE   e.g. genericx86-64 | verdin-am62p | verdin-imx8mp
 #   DISTRO    torizon-ab (SWUpdate) | torizon-ab-rauc (RAUC)
 # Optional env (sane defaults for m920x):
-#   CHANNEL         release | nightly | next           (default: release)
-#   AB_ROOT         persistent tree dir                 (default: ~/code/ab-ci)
+#   CHANNEL         release | integration | next       (default: release)
+#   VENDOR          manifest vendor dir (torizon-ab/<vendor>/) (default: tdx)
+#   AB_ROOT         base dir for the persistent trees, one per manifest branch
+#                   and vendor: $AB_ROOT/<branch>/<vendor>   (default: ~/code/ab-ci)
 #   SHARED_CACHES   dir holding downloads/ + sstate-cache (default: ~/code/torizon-os)
 #   MANIFEST_URL / MANIFEST_BRANCH                       (default: this repo on GitHub / main)
 #   CROPS_IMAGE                                          (default: torizon/crops:wrynose-8.x.y)
-#   OUT_DIR         where to place published artifacts   (default: $AB_ROOT/artifacts/<machine>-<backend>)
+#   OUT_DIR         where to place published artifacts   (default: <tree>/artifacts/<machine>-<backend>)
 set -euo pipefail
 
 # Resolve the script's own dir NOW, before any cd (ci/conf lives next to it).
@@ -27,6 +29,7 @@ CI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MACHINE="${MACHINE:?set MACHINE}"
 DISTRO="${DISTRO:?set DISTRO (torizon-ab | torizon-ab-rauc)}"
 CHANNEL="${CHANNEL:-release}"
+VENDOR="${VENDOR:-tdx}"
 AB_ROOT="${AB_ROOT:-$HOME/code/ab-ci}"
 SHARED_CACHES="${SHARED_CACHES:-$HOME/code/torizon-os}"
 MANIFEST_URL="${MANIFEST_URL:-https://github.com/EstebanSannin/torizon-ab-manifest}"
@@ -39,16 +42,20 @@ case "$DISTRO" in
   *) echo "unknown DISTRO: $DISTRO" >&2; exit 2 ;;
 esac
 BUILD_DIR="build-${MACHINE}-${BACKEND}"
-OUT_DIR="${OUT_DIR:-$AB_ROOT/artifacts/${MACHINE}-${BACKEND}}"
-MANIFEST_XML="torizon-ab/tdx/${CHANNEL}.xml"   # TODO: per-vendor manifest when non-tdx machines land
+# One tree per manifest branch + vendor: they pin different layer sets (and
+# different Yocto series across branches), so sharing one tree would churn every
+# checkout and reuse build dirs across series. Caches stay shared.
+TREE="$AB_ROOT/${MANIFEST_BRANCH//\//-}/$VENDOR"
+OUT_DIR="${OUT_DIR:-$TREE/artifacts/${MACHINE}-${BACKEND}}"
+MANIFEST_XML="torizon-ab/${VENDOR}/${CHANNEL}.xml"
 
 echo "== torizon-ab CI build =="
 echo "   MACHINE=$MACHINE DISTRO=$DISTRO (backend=$BACKEND) channel=$CHANNEL"
-echo "   tree=$AB_ROOT build_dir=$BUILD_DIR caches=$SHARED_CACHES"
+echo "   manifest=$MANIFEST_BRANCH:$MANIFEST_XML tree=$TREE build_dir=$BUILD_DIR caches=$SHARED_CACHES"
 
 # 1) sync the manifest tree (init once, then sync to the pinned/tip revs)
-mkdir -p "$AB_ROOT"
-cd "$AB_ROOT"
+mkdir -p "$TREE"
+cd "$TREE"
 if [ ! -d .repo ]; then
   repo init -u "$MANIFEST_URL" -b "$MANIFEST_BRANCH" -m "$MANIFEST_XML"
 else
@@ -56,16 +63,13 @@ else
 fi
 repo sync -j"$(nproc)" -c
 
-# 2) build in crops, reusing shared caches. Ship the known-good conf (do NOT rely
-#    on oe-init defaults — those are poky and miss the Toradex + overlay layers).
-mkdir -p "$BUILD_DIR/conf"
-cp "$CI_DIR/conf/bblayers.conf" "$BUILD_DIR/conf/bblayers.conf"
-cp "$CI_DIR/conf/local.conf"    "$BUILD_DIR/conf/local.conf"
-# override the caches to the shared host dirs (mounted at /dl,/sstate)
-printf 'DL_DIR = "/dl"\nSSTATE_DIR = "/sstate"\n' > "$BUILD_DIR/conf/auto.conf"
+# 2) build in crops, reusing shared caches. Generate the conf from the synced
+#    tree (do NOT rely on oe-init defaults — those are poky and miss the Toradex +
+#    overlay layers).
+"$CI_DIR/mkconf.sh" "$TREE" "$BUILD_DIR" "$CHANNEL"
 
 docker run --rm --name "abci-$$" \
-  -v "$AB_ROOT:/workdir" \
+  -v "$TREE:/workdir" \
   -v "$SHARED_CACHES/downloads:/dl" \
   -v "$SHARED_CACHES/sstate-cache:/sstate" \
   --workdir=/workdir "$CROPS_IMAGE" bash -c "
@@ -78,7 +82,7 @@ docker run --rm --name "abci-$$" \
   "
 
 DEPLOY="$(cat "$BUILD_DIR/.deploydir")"
-DEPLOY="${DEPLOY/\/workdir/$AB_ROOT}"   # map container path back to host
+DEPLOY="${DEPLOY/\/workdir/$TREE}"   # map container path back to host
 echo "== deploy dir: $DEPLOY =="
 
 # 3) collect + package artifacts

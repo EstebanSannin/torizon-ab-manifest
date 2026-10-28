@@ -20,8 +20,8 @@ on:
       channel:
         description: Manifest channel
         type: choice
-        default: release
-        options: [release, nightly, next]
+        default: integration
+        options: [release, integration, next]
   schedule:
     - cron: '0 2 * * 0'          # weekly — Sunday 02:00 UTC
 
@@ -74,6 +74,7 @@ jobs:
         env:
           MACHINE: ${{ matrix.machine }}
           CHANNEL: ${{ needs.setup.outputs.channel }}
+          MANIFEST_BRANCH: ${{ github.ref_name }}   # build the manifest of the branch this runs on
           OUT_DIR: ${{ github.workspace }}/artifacts
         run: |
           case "${{ matrix.backend }}" in
