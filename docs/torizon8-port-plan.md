@@ -16,6 +16,8 @@ All on real hardware, driven headless (power/recovery control + serial):
 | B→A update | same, opposite direction; greenboot commits the update at boot |
 | `complete-install` | `ok` after a good update; `failed: rolled back` after a rollback |
 | Rollback | failing required health check on B → 3 attempts → `Bootlimit (3) exceeded` → altbootcmd → slot A |
+| Torizon Cloud, good update | provision → upload (`POST /packages`, 187 MB) → launch → aktualizr → slot switch → cloud **Completed / UpToDate** |
+| Torizon Cloud, bad update | rollback-test image → 3 failed boots → back to the good slot → cloud **`success: false`, "rootfs update failed; rolled back"** |
 
 Flashing note: erase the whole **boot0** before writing imx-boot. The U-Boot env
 lives at its end; a previous image's env survives otherwise and the new U-Boot
