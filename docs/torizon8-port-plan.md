@@ -1,8 +1,46 @@
 # Torizon OS 8 ("wrynose") port — plan
 
-Status: **draft spec** for the dedicated port session. Torizon 7 (scarthgap-7.x.y)
-is green and published; it stays the fallback baseline. Do **not** run a full 7
-matrix — the next full build should be 8.
+Status: **verdin-imx8mp × SWUpdate ported and hardware-validated** on the
+integration channel (2026-10-28). Torizon 7 (scarthgap-7.x.y) stays the fallback
+baseline. Next: RAUC on imx8mp, then the am62p variants, then the full matrix.
+
+## Hardware validation — verdin-imx8mp × SWUpdate (Verdin iMX8M Plus on Dahlia)
+
+All on real hardware, driven headless (power/recovery control + serial):
+
+| Step | Result |
+|------|--------|
+| Flash (uuu, no Tezi) | wic → eMMC user area, imx-boot → boot0, BOOT_ACK=1 |
+| First boot | U-Boot 2027.01-rc1 → A/B boot.scr → slot A, Linux 6.18, login |
+| A→B update | `swupdate_actions.sh install` (aktualizr contract) → `need-completion` → auto-reboot into B; slot B ext4 UUID == payload UUID |
+| B→A update | same, opposite direction; greenboot commits the update at boot |
+| `complete-install` | `ok` after a good update; `failed: rolled back` after a rollback |
+| Rollback | failing required health check on B → 3 attempts → `Bootlimit (3) exceeded` → altbootcmd → slot A |
+
+Flashing note: erase the whole **boot0** before writing imx-boot. The U-Boot env
+lives at its end; a previous image's env survives otherwise and the new U-Boot
+uses it (here: `booti` failed, `kernel_comp_addr_r` missing).
+
+## Found while porting (worth reporting upstream)
+
+- tdx `release.xml` pins a meta-torizon-bsp whose bblayers template still lists
+  the abandoned `meta-toradex-distro` → build the integration channel.
+- The manifest pins meta-updater `c73c905`; its `bootimg_sota_efi` wic plugin
+  imports `oe.path`, which wrynose's standalone wic lacks, so **every wic image
+  fails**. Fixed upstream in `23b4e41`; our overlay overrides the pin until then.
+- greenboot's task runners start before udev creates the U-Boot env device
+  (`/dev/emmc-boot0`): stock `00_cleanup_uboot_vars.sh` fails with "Cannot
+  initialize environment" yet reports SUCCESS. Fixed here with a drop-in that
+  waits for the `fw_env.config` devices (`torizon-ab-ubootenv-wait`).
+- `systemd-networkd-wait-online` ends up enabled (meta-torizon's postinst
+  disable does not stick on wrynose) and fails → system `degraded`.
+
+## Open points
+
+- `os-release` VERSION does not change between builds (the package is reused
+  from sstate), so two different images report the same version; the slot UUID
+  is the reliable discriminator meanwhile.
+- `kernel-devsrc` left out (fixed 1536 MiB slots).
 
 ## Goal
 
