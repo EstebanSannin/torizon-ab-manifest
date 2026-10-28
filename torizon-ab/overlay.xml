@@ -26,6 +26,13 @@
   <project name="rauc/meta-rauc" path="layers/meta-rauc" remote="ab-github"
            revision="38da0e5866a953e664001ba90b5edad68d68cd5d" upstream="wrynose"/>
 
+  <!-- meta-updater: upstream pins c73c905, whose bootimg_sota_efi wic plugin
+       imports oe.path. wrynose's standalone wic loads every layer's plugins and
+       has no 'oe' module, so ANY wic image fails (ours are wic). Fixed upstream in
+       23b4e41 (2 commits on; the other only touches ostree ptest). Drop this
+       override once the upstream manifest pins 23b4e41 or later. -->
+  <extend-project name="meta-updater" revision="23b4e417aa321758e914491d9f74bb884891de11"/>
+
   <!-- The A/B variant layer. Tracks the Torizon 8 port branch until it is
        validated; the release channel should later pin a tag/SHA. -->
   <project name="EstebanSannin/meta-torizon-ab" path="layers/meta-torizon-ab" remote="ab-github"
