@@ -15,8 +15,10 @@
 # Optional env (defaults suit a self-hosted build host):
 #   CHANNEL         release | integration | next       (default: release)
 #   VENDOR          manifest vendor dir (torizon-ab/<vendor>/) (default: tdx)
-#   AB_ROOT         base dir for the persistent trees, one per manifest branch
-#                   and vendor: $AB_ROOT/<branch>/<vendor>   (default: ~/code/ab-ci)
+#   AB_TREES        base dir for the persistent trees, one per manifest branch
+#                   and vendor: $AB_TREES/<branch>/<vendor>  (default: ~/code/ab-trees)
+#                   Must not sit inside a repo client (e.g. an older single-tree
+#                   AB_ROOT checkout): repo would reuse that client instead.
 #   SHARED_CACHES   dir holding downloads/ + sstate-cache (default: ~/code/torizon-os)
 #   MANIFEST_URL / MANIFEST_BRANCH                       (default: this repo on GitHub / main)
 #   CROPS_IMAGE                                          (default: torizon/crops:wrynose-8.x.y)
@@ -30,7 +32,7 @@ MACHINE="${MACHINE:?set MACHINE}"
 DISTRO="${DISTRO:?set DISTRO (torizon-ab | torizon-ab-rauc)}"
 CHANNEL="${CHANNEL:-release}"
 VENDOR="${VENDOR:-tdx}"
-AB_ROOT="${AB_ROOT:-$HOME/code/ab-ci}"
+AB_TREES="${AB_TREES:-$HOME/code/ab-trees}"
 SHARED_CACHES="${SHARED_CACHES:-$HOME/code/torizon-os}"
 MANIFEST_URL="${MANIFEST_URL:-https://github.com/EstebanSannin/torizon-ab-manifest}"
 MANIFEST_BRANCH="${MANIFEST_BRANCH:-main}"
@@ -45,7 +47,7 @@ BUILD_DIR="build-${MACHINE}-${BACKEND}"
 # One tree per manifest branch + vendor: they pin different layer sets (and
 # different Yocto series across branches), so sharing one tree would churn every
 # checkout and reuse build dirs across series. Caches stay shared.
-TREE="$AB_ROOT/${MANIFEST_BRANCH//\//-}/$VENDOR"
+TREE="$AB_TREES/${MANIFEST_BRANCH//\//-}/$VENDOR"
 OUT_DIR="${OUT_DIR:-$TREE/artifacts/${MACHINE}-${BACKEND}}"
 MANIFEST_XML="torizon-ab/${VENDOR}/${CHANNEL}.xml"
 
@@ -56,6 +58,11 @@ echo "   manifest=$MANIFEST_BRANCH:$MANIFEST_XML tree=$TREE build_dir=$BUILD_DIR
 # 1) sync the manifest tree (init once, then sync to the pinned/tip revs)
 mkdir -p "$TREE"
 cd "$TREE"
+d="$(dirname "$TREE")"
+while [ "$d" != / ]; do
+  [ -d "$d/.repo" ] && { echo "tree $TREE is inside the repo client $d; set AB_TREES elsewhere" >&2; exit 2; }
+  d="$(dirname "$d")"
+done
 if [ ! -d .repo ]; then
   repo init -u "$MANIFEST_URL" -b "$MANIFEST_BRANCH" -m "$MANIFEST_XML"
 else
