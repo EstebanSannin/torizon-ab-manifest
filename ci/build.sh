@@ -87,12 +87,16 @@ echo "== deploy dir: $DEPLOY =="
 
 # 3) collect + package artifacts
 rm -rf "$OUT_DIR"; mkdir -p "$OUT_DIR"
-# OTA payload (follow symlink to the versioned file)
-payload="$(ls -1 "$DEPLOY"/$PAYLOAD_GLOB 2>/dev/null | grep -vE '\.(sha256|txt)$' | head -1)"
+# Newest versioned file matching a glob. Versioned names carry a build timestamp,
+# so the deploy dir accumulates one per build; the unversioned names are symlinks
+# (skipped by -type f).
+newest() { find "$DEPLOY" -maxdepth 1 -type f -name "$1" -printf '%T@ %p\n' | sort -nr | head -1 | cut -d' ' -f2-; }
+# OTA payload
+payload="$(newest "$PAYLOAD_GLOB")"
 [ -n "$payload" ] || { echo "no payload ($PAYLOAD_GLOB) in $DEPLOY" >&2; exit 3; }
-cp -L "$payload" "$OUT_DIR/"
+cp "$payload" "$OUT_DIR/"
 # flashable image: compress the sparse .wic (tiny once compressed) + keep bmap
-wic="$(ls -1 "$DEPLOY"/torizon-minimal-ab-*.wic 2>/dev/null | grep -vE '\.(vmdk|vdi|bmap)$' | head -1 || true)"
+wic="$(newest 'torizon-minimal-ab-*.wic')"
 if [ -n "$wic" ]; then
   xz -T0 -c "$wic" > "$OUT_DIR/$(basename "$wic").xz"
   [ -f "$wic.bmap" ] && cp -L "$wic.bmap" "$OUT_DIR/"

@@ -7,7 +7,10 @@
 #   REPO               owner/repo (github.repository)
 #   ART_DIR            dir holding the artifacts + metadata.env + SHA256SUMS
 #   TARGET_COMMITISH   (optional) commit the tag points at (github.sha)
+#   PRERELEASE         (optional) "true" publishes as a pre-release ("preview"
+#                      on the landing page); default false
 set -euo pipefail
+PRERELEASE="${PRERELEASE:-false}"
 : "${GH_TOKEN:?}" "${REPO:?}" "${ART_DIR:?}"
 
 # shellcheck disable=SC1091
@@ -29,7 +32,8 @@ body="$(printf 'Automated build (torizon-ab pipeline).\n\n- machine: `%s`\n- bac
 rid="$(curl -sS "${hdr[@]}" "$API/repos/$REPO/releases/tags/$TAG" | jq -r '.id // empty')"
 if [ -z "$rid" ]; then
   payload="$(jq -n --arg t "$TAG" --arg n "$BUILD_ID" --arg b "$body" --arg c "${TARGET_COMMITISH:-}" \
-    '{tag_name:$t, name:$n, body:$b} + (if $c=="" then {} else {target_commitish:$c} end)')"
+    --argjson pre "$PRERELEASE" \
+    '{tag_name:$t, name:$n, body:$b, prerelease:$pre} + (if $c=="" then {} else {target_commitish:$c} end)')"
   resp="$(curl -sS "${hdr[@]}" -X POST "$API/repos/$REPO/releases" -d "$payload")"
   rid="$(printf '%s' "$resp" | jq -r '.id // empty')"
   if [ -z "$rid" ]; then
@@ -41,7 +45,7 @@ if [ -z "$rid" ]; then
 else
   # refresh the notes on an existing tag (idempotent re-runs)
   curl -fsS "${hdr[@]}" -X PATCH "$API/repos/$REPO/releases/$rid" \
-    -d "$(jq -n --arg n "$BUILD_ID" --arg b "$body" '{name:$n, body:$b}')" >/dev/null
+    -d "$(jq -n --arg n "$BUILD_ID" --arg b "$body" --argjson pre "$PRERELEASE" '{name:$n, body:$b, prerelease:$pre}')" >/dev/null
   echo "updating release $TAG (id=$rid)"
 fi
 

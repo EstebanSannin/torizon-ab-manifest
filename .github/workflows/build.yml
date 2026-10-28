@@ -45,7 +45,7 @@ jobs:
           ALL='[{"machine":"genericx86-64","backend":"rauc"},{"machine":"genericx86-64","backend":"swupdate"},{"machine":"verdin-am62p","backend":"rauc"},{"machine":"verdin-am62p","backend":"swupdate"},{"machine":"verdin-imx8mp","backend":"rauc"},{"machine":"verdin-imx8mp","backend":"swupdate"}]'
           if [ "${{ github.event_name }}" = "schedule" ]; then
             echo "matrix={\"include\":$ALL}" >> "$GITHUB_OUTPUT"
-            echo "channel=release" >> "$GITHUB_OUTPUT"
+            echo "channel=integration" >> "$GITHUB_OUTPUT"   # release.xml lags on 8
           else
             m='${{ inputs.machine }}'; b='${{ inputs.backend }}'
             [ "$m" = all ]  && machines='genericx86-64 verdin-am62p verdin-imx8mp' || machines="$m"
@@ -90,6 +90,8 @@ jobs:
           REPO: ${{ github.repository }}
           ART_DIR: ${{ github.workspace }}/artifacts
           TARGET_COMMITISH: ${{ github.sha }}
+          # Only release-channel builds of main are releases; everything else is a preview.
+          PRERELEASE: ${{ github.ref_name != 'main' || needs.setup.outputs.channel != 'release' }}
         run: |
           chmod +x ci/publish-release.sh
           ./ci/publish-release.sh
