@@ -16,7 +16,7 @@
 #   CHANNEL         release | nightly | next           (default: release)
 #   AB_ROOT         persistent tree dir                 (default: ~/code/ab-ci)
 #   SHARED_CACHES   dir holding downloads/ + sstate-cache (default: ~/code/torizon-os)
-#   MANIFEST_URL / MANIFEST_BRANCH                       (default: this repo on GitHub / main)
+#   MANIFEST_URL / MANIFEST_BRANCH                       (default: this repo on GitHub / scarthgap-7.x.y)
 #   CROPS_IMAGE                                          (default: torizon/crops:scarthgap-7.x.y)
 #   OUT_DIR         where to place published artifacts   (default: $AB_ROOT/artifacts/<machine>-<backend>)
 set -euo pipefail
@@ -30,7 +30,7 @@ CHANNEL="${CHANNEL:-release}"
 AB_ROOT="${AB_ROOT:-$HOME/code/ab-ci}"
 SHARED_CACHES="${SHARED_CACHES:-$HOME/code/torizon-os}"
 MANIFEST_URL="${MANIFEST_URL:-https://github.com/EstebanSannin/torizon-ab-manifest}"
-MANIFEST_BRANCH="${MANIFEST_BRANCH:-main}"
+MANIFEST_BRANCH="${MANIFEST_BRANCH:-scarthgap-7.x.y}"
 CROPS_IMAGE="${CROPS_IMAGE:-torizon/crops:scarthgap-7.x.y}"
 
 case "$DISTRO" in

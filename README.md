@@ -9,7 +9,7 @@ the variant with **one command** and is **reproducible**.
 
 ```sh
 mkdir torizon-ab && cd torizon-ab
-repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b main \
+repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b scarthgap-7.x.y \
           -m torizon-ab/tdx/release.xml
 repo sync
 # then: source setup-environment build, set DISTRO=torizon-ab|torizon-ab-rauc,

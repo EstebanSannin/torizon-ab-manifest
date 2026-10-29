@@ -29,8 +29,8 @@
   <project name="rauc/meta-rauc" path="layers/meta-rauc" remote="ab-github"
            revision="d63878f20eba7a85ecf53566e7a3377e78bb46ac" upstream="scarthgap"/>
 
-  <!-- The A/B variant layer. Tracks main during active dev; the release channel
-       should later pin a tag/SHA. -->
+  <!-- The A/B variant layer. Tracks its Torizon 7 release line (same branch
+       name as this manifest); the release channel should later pin a tag/SHA. -->
   <project name="EstebanSannin/meta-torizon-ab" path="layers/meta-torizon-ab" remote="ab-github"
-           revision="main"/>
+           revision="scarthgap-7.x.y"/>
 </manifest>
