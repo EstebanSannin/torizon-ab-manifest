@@ -58,8 +58,9 @@ for f in "$ART_DIR"/*; do
     curl -fsS "${hdr[@]}" -X DELETE "$API/repos/$REPO/releases/assets/$aid" >/dev/null
     echo "  replaced $name"
   fi
-  curl -fsS "${hdr[@]}" -H "Content-Type: application/octet-stream" \
-    --data-binary @"$f" "$UPLOADS/repos/$REPO/releases/$rid/assets?name=$name" >/dev/null
+  # -T streams the file; --data-binary loads it into memory and fails past ~1 GB.
+  curl -fsS "${hdr[@]}" -H "Content-Type: application/octet-stream" -X POST \
+    -T "$f" "$UPLOADS/repos/$REPO/releases/$rid/assets?name=$name" >/dev/null
   echo "  uploaded $name"
 done
 
