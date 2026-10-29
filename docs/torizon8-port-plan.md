@@ -3,9 +3,10 @@
 Status: **verdin-imx8mp × SWUpdate and × RAUC ported and hardware-validated**
 (local + Torizon Cloud) on the integration channel (2026-10-28), SWUpdate re-run
 after the shared handler fixes. **genericx86-64 × both backends validated in
-QEMU** (local + Torizon Cloud, 2026-10-29). **CI builds the full 6-combo matrix
-on 8**; it publishes only the validated combos. Torizon 7 (scarthgap-7.x.y)
-stays the fallback baseline. Next: verdin-am62p on hardware.
+QEMU** (local + Torizon Cloud, 2026-10-29). **verdin-am62p × both backends
+hardware-validated** (local + Torizon Cloud, 2026-10-29) after a kernel fix.
+**CI builds the full 6-combo matrix on 8** and publishes the validated combos:
+all three machines. Torizon 7 (scarthgap-7.x.y) stays the fallback baseline.
 
 ## Hardware validation — verdin-imx8mp × SWUpdate (Verdin iMX8M Plus on Dahlia)
 
@@ -91,6 +92,29 @@ Notes from the runs:
 - The 1.1 GB uploads through the REST API took ~44 s each (`curl -T`; `curl
   --data-binary @file` runs out of memory at that size).
 
+## Hardware validation — verdin-am62p (Verdin AM62P on Dahlia)
+
+Flashed headless (recovery + DFU + fastboot; see meta-torizon-ab
+`docs/am62p-hardware-loop.md` §0).
+
+| Step | SWUpdate | RAUC |
+|------|----------|------|
+| Flash + first boot | slot A | slot A, `rauc.slot=A`, env seeded |
+| Warm `reboot` | boots (with the kernel fix) | boots (with the kernel fix) |
+| Local A→B | B booted, `complete-install` ok | B booted, both slots good, `complete-install` ok |
+| Cloud, good payload (231 MB) | **Completed / UpToDate** | **Completed / UpToDate** |
+| Cloud, bad payload | 3 failed boots → bootlimit → slot A → cloud **`success: false`, rolled back** | 3 failed boots → slot A → cloud **`success: false`, rolled back** |
+
+**Blocker found and fixed:** the BSP's 6.18.32 TI kernel oopses in the TPS65219
+PMIC regulator driver (`irq_data->rdev` never assigned, CVE-2026-64230) whenever
+a regulator IRQ is pending. Every warm reset leaves one, so every `reboot`
+(including each A/B update and rollback reboot) boot-looped until a cold power
+cycle. The same pinned kernel is in stock Torizon OS 8 (integration and release
+channels), so stock images on the Verdin AM62P should hit it too. Toradex's
+kernel branch has the upstream fix and meta-toradex-bsp wrynose moved to 6.18.51
+on 2026-10-28, but the Torizon manifest still pins the older BSP; meta-torizon-ab
+carries the fix commit for `linux-toradex-ti` until then.
+
 ## CI on Torizon OS 8
 
 `workflow_dispatch` on `port/torizon8`, integration channel, all 6 combos green.
@@ -119,6 +143,12 @@ uses it (here: `booti` failed, `kernel_comp_addr_r` missing).
 - meta-torizon-bsp sets `CONFIG_KERNEL_LZ4` for linux-yocto (`torizon.cfg`) but
   adds `lz4-native` only to linux-intel → genericx86-64 bzImage fails with "lz4:
   not found". meta-torizon-ab adds the dependency until upstream does.
+- The tdx integration/release manifests pin meta-toradex-bsp `a10f9bf`, whose
+  `linux-toradex-ti` 6.18.32 lacks the TPS65219 fix (CVE-2026-64230): Verdin
+  AM62P boot-loops after every warm reboot. meta-toradex-bsp wrynose already
+  has 6.18.51 with the fix.
+- Torizon 8's U-Boot detects the Dahlia carrier as "Verdin Development Board"
+  on the Verdin AM62P (`fdtfile=k3-am62p5-verdin-wifi-dev.dtb`).
 - `systemd-networkd-wait-online` ends up enabled (meta-torizon's postinst
   disable does not stick on wrynose) and fails → system `degraded`.
 
