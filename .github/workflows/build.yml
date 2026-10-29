@@ -31,7 +31,7 @@ permissions:
 env:
   # machine/backend combos validated on this branch's OS version. Every combo is
   # built; only these are published as GitHub Releases.
-  VALIDATED: verdin-imx8mp/rauc verdin-imx8mp/swupdate
+  VALIDATED: verdin-imx8mp/rauc verdin-imx8mp/swupdate genericx86-64/rauc genericx86-64/swupdate
 
 jobs:
   # Expand the build matrix: full set for the weekly schedule (or all/both),
