@@ -124,11 +124,12 @@
   <section>
     <h2>Build it yourself</h2>
     <p class="sub">One command gets a reproducible tree pinned to the tested revisions.</p>
-    <pre><button class="icon copy" data-copy="repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b main -m torizon-ab/tdx/release.xml
-repo sync">Copy</button><code>repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b main \
-          -m torizon-ab/tdx/release.xml
+    <pre><button class="icon copy" data-copy="repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b wrynose-8.x.y -m torizon-ab/tdx/integration.xml
+repo sync">Copy</button><code>repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b wrynose-8.x.y \
+          -m torizon-ab/tdx/integration.xml
 repo sync
 # then: source setup-environment build; DISTRO=torizon-ab | torizon-ab-rauc; bitbake</code></pre>
+    <p class="sub">Torizon OS 7: <code>-b scarthgap-7.x.y -m torizon-ab/tdx/release.xml</code>.</p>
   </section>
 
   <section>

@@ -8,6 +8,10 @@ hardware-validated** (local + Torizon Cloud, 2026-10-29) after a kernel fix.
 **CI builds the full 6-combo matrix on 8** and publishes the validated combos:
 all three machines. Torizon 7 (scarthgap-7.x.y) stays the fallback baseline.
 
+Branches (2026-10-29): the port branch `port/torizon8` became **`wrynose-8.x.y`**
+(default) and the Torizon 7 `main` became **`scarthgap-7.x.y`**, in both repos,
+mirroring Torizon's per-release scheme. `port/torizon8` below is historical.
+
 ## Hardware validation — verdin-imx8mp × SWUpdate (Verdin iMX8M Plus on Dahlia)
 
 All on real hardware, driven headless (power/recovery control + serial):
@@ -117,7 +121,8 @@ carries the fix commit for `linux-toradex-ti` until then.
 
 ## CI on Torizon OS 8
 
-`workflow_dispatch` on `port/torizon8`, integration channel, all 6 combos green.
+`workflow_dispatch` on `wrynose-8.x.y` (then `port/torizon8`), integration channel,
+all 6 combos green. The weekly schedule runs on the default branch (`wrynose-8.x.y`).
 One tree per manifest branch + vendor under `AB_TREES` (must not sit inside an
 older single-tree repo client). Every combo builds; only the combos listed in the
 workflow's `VALIDATED` are published, as pre-releases ("preview").

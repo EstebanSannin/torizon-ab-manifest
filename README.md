@@ -10,7 +10,7 @@ layers, so a fresh checkout builds the variant with **one command** and is
 
 ```sh
 mkdir torizon-ab && cd torizon-ab
-repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b main \
+repo init -u https://github.com/EstebanSannin/torizon-ab-manifest -b wrynose-8.x.y \
           -m torizon-ab/tdx/integration.xml
 repo sync
 # conf: upstream's bblayers template + the overlay layers (what CI uses)
@@ -23,6 +23,10 @@ repo sync
 
 For Torizon OS 8 build the **integration** channel: upstream's `release.xml`
 still pins pre-restructure revisions.
+
+Branches follow Torizon's per-release scheme, in this repo and in
+`meta-torizon-ab`: **`wrynose-8.x.y`** (Torizon OS 8, default) and
+**`scarthgap-7.x.y`** (Torizon OS 7, `-m torizon-ab/tdx/release.xml`).
 
 `-m` picks the **vendor + channel**. Toradex boards (verdin-am62p, verdin-imx8mp,
 genericx86-64) are `torizon-ab/tdx/…`.

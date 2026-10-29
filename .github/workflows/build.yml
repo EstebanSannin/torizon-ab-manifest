@@ -96,8 +96,8 @@ jobs:
           REPO: ${{ github.repository }}
           ART_DIR: ${{ github.workspace }}/artifacts
           TARGET_COMMITISH: ${{ github.sha }}
-          # Only release-channel builds of main are releases; everything else is a preview.
-          PRERELEASE: ${{ github.ref_name != 'main' || needs.setup.outputs.channel != 'release' }}
+          # Only release-channel builds are releases; everything else is a preview.
+          PRERELEASE: ${{ needs.setup.outputs.channel != 'release' }}
         run: |
           chmod +x ci/publish-release.sh
           ./ci/publish-release.sh

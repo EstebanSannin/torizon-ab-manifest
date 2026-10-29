@@ -33,8 +33,8 @@
        override once the upstream manifest pins 23b4e41 or later. -->
   <extend-project name="meta-updater" revision="23b4e417aa321758e914491d9f74bb884891de11"/>
 
-  <!-- The A/B variant layer. Tracks the Torizon 8 port branch until it is
-       validated; the release channel should later pin a tag/SHA. -->
+  <!-- The A/B variant layer. Tracks its Torizon 8 release line (same branch
+       name as this manifest); the release channel should later pin a tag/SHA. -->
   <project name="EstebanSannin/meta-torizon-ab" path="layers/meta-torizon-ab" remote="ab-github"
-           revision="port/torizon8"/>
+           revision="wrynose-8.x.y"/>
 </manifest>
