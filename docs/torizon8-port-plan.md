@@ -2,8 +2,10 @@
 
 Status: **verdin-imx8mp × SWUpdate and × RAUC ported and hardware-validated**
 (local + Torizon Cloud) on the integration channel (2026-10-28), SWUpdate re-run
-after the shared handler fixes. Torizon 7 (scarthgap-7.x.y) stays the fallback
-baseline. Next: the am62p variants, then the full matrix.
+after the shared handler fixes. **genericx86-64 × both backends validated in
+QEMU** (local + Torizon Cloud, 2026-10-29). **CI builds the full 6-combo matrix
+on 8**; it publishes only the validated combos. Torizon 7 (scarthgap-7.x.y)
+stays the fallback baseline. Next: verdin-am62p on hardware.
 
 ## Hardware validation — verdin-imx8mp × SWUpdate (Verdin iMX8M Plus on Dahlia)
 
@@ -53,6 +55,49 @@ when the boot failed and `upgrade_available` is not 1 ("update not in progress,
 device requires intervention"). The RAUC trial did not set the flag, so that path
 ran and the old handler confirmed. Reproduced and confirmed on the board.
 
+## QEMU validation — genericx86-64 (both backends)
+
+QEMU/KVM with OVMF, virtio disk, user-mode networking. Access injected at runtime
+by `tests/hardware/enable-access.sh` on the serial pty (image stays pristine).
+
+| Step | SWUpdate | RAUC |
+|------|----------|------|
+| Fresh image, first boot | slot A | slot A |
+| Local A→B (`*_actions.sh` contract) | B booted, `complete-install` ok | B booted, both slots good, `complete-install` ok |
+| Cloud, good payload (1.1 GB) | **Completed / UpToDate** | **Completed / UpToDate** |
+| Cloud, bad payload | 3 failed boots → bootlimit → slot A → cloud **`success: false`, rolled back** | failed trial rebooted → GRUB falls back to A → cloud **`success: false`, rolled back** |
+
+The first RAUC bad-payload run did **not** roll back: greenboot's
+`redboot-auto-reboot` reads the trial flag with `fw_printenv`, which the x86 RAUC
+image lacked ("command not found" → "update not in progress"), so it never
+rebooted the failed trial. Fixed in meta-torizon-ab: the grubenv
+`fw_printenv`/`fw_setenv` wrappers moved to `grubenv-fw-utils` (both x86
+backends) and the RAUC handler sets `upgrade_available` there too.
+
+Notes from the runs:
+- x86 payloads are **1.1 GB** (7: 792 MB). 1.8 GB of the 2.2 GB rootfs is
+  `linux-firmware`, installed for genericx86-64 by meta-torizon-bsp's
+  `torizon-image-machine` class.
+- aktualizr keeps the last payload in `/var/sota/storage/rootfs/` after
+  installing it, so the data partition needs room for two payloads plus the
+  download. A run with a leftover 1.1 GB test file in `/var/tmp` filled the 3.8 GB
+  data partition: the payload reached the handler truncated even though the
+  download reported success; RAUC rejected it (bad signature size), nothing was
+  installed.
+- Torizon Cloud: two package uploads at the same time left one of them out of the
+  Image repo targets metadata (listed by `GET /packages`, yet aktualizr reports
+  "No matching target in Image repo Targets metadata"). Uploading one at a time
+  works.
+- The 1.1 GB uploads through the REST API took ~44 s each (`curl -T`; `curl
+  --data-binary @file` runs out of memory at that size).
+
+## CI on Torizon OS 8
+
+`workflow_dispatch` on `port/torizon8`, integration channel, all 6 combos green.
+One tree per manifest branch + vendor under `AB_TREES` (must not sit inside an
+older single-tree repo client). Every combo builds; only the combos listed in the
+workflow's `VALIDATED` are published, as pre-releases ("preview").
+
 Flashing note: erase the whole **boot0** before writing imx-boot. The U-Boot env
 lives at its end; a previous image's env survives otherwise and the new U-Boot
 uses it (here: `booti` failed, `kernel_comp_addr_r` missing).
@@ -68,6 +113,12 @@ uses it (here: `booti` failed, `kernel_comp_addr_r` missing).
   (`/dev/emmc-boot0`): stock `00_cleanup_uboot_vars.sh` fails with "Cannot
   initialize environment" yet reports SUCCESS. Fixed here with a drop-in that
   waits for the `fw_env.config` devices (`torizon-ab-ubootenv-wait`).
+- meta-torizon-bsp's `0001-rules-whitelist-hd-devices.patch` (genericx86-64)
+  no longer applies to systemd 259 (new `rbd*|zram*|ublkb*` entries) → systemd
+  `do_patch` fails. Rebased copy carried in meta-torizon-ab until upstream does.
+- meta-torizon-bsp sets `CONFIG_KERNEL_LZ4` for linux-yocto (`torizon.cfg`) but
+  adds `lz4-native` only to linux-intel → genericx86-64 bzImage fails with "lz4:
+  not found". meta-torizon-ab adds the dependency until upstream does.
 - `systemd-networkd-wait-online` ends up enabled (meta-torizon's postinst
   disable does not stick on wrynose) and fails → system `degraded`.
 
