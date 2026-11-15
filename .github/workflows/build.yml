@@ -81,6 +81,7 @@ jobs:
           CHANNEL: ${{ needs.setup.outputs.channel }}
           MANIFEST_BRANCH: ${{ github.ref_name }}   # build the manifest of the branch this runs on
           OUT_DIR: ${{ github.workspace }}/artifacts
+          REPORT_DIR: ${{ github.workspace }}/report
         run: |
           case "${{ matrix.backend }}" in
             rauc)     export DISTRO=torizon-ab-rauc ;;
@@ -88,6 +89,43 @@ jobs:
           esac
           chmod +x ci/build.sh
           ./ci/build.sh
+
+      # Green: the tip built. Warning: the tip broke, the last good upstream pins
+      # built (upstream drift). Error: both broke, or the build never got going.
+      - name: Report ${{ matrix.machine }} / ${{ matrix.backend }}
+        if: always()
+        env:
+          REPORT_DIR: ${{ github.workspace }}/report
+        run: |
+          combo="${{ matrix.machine }} / ${{ matrix.backend }}"
+          if [ ! -f "$REPORT_DIR/status.env" ]; then
+            echo "::error title=$combo::No build report: the build stopped before bitbake ran (sync or setup)."
+            echo "### $combo: no report (stopped before bitbake)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          . "$REPORT_DIR/status.env"
+          case "$RESULT" in
+            fallback) echo "::warning title=Upstream drift broke $combo::The branch-tip layers did not build; this build used the last good upstream pins ($LAST_GOOD_DATE). See the job summary." ;;
+            failed)   echo "::error title=$combo failed::Failed with pins=$PINS. See the job summary." ;;
+          esac
+          {
+            echo "### $combo: $RESULT (pins: $PINS)"
+            for f in errors.txt upstream-delta.txt; do
+              [ -s "$REPORT_DIR/$f" ] || continue
+              printf '\n<details><summary>%s</summary>\n\n```\n' "$f"
+              cat "$REPORT_DIR/$f"
+              printf '```\n</details>\n'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-${{ matrix.machine }}-${{ matrix.backend }}
+          path: ${{ github.workspace }}/report
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Publish to GitHub Releases
         if: contains(format(' {0} ', env.VALIDATED), format(' {0}/{1} ', matrix.machine, matrix.backend))
@@ -111,3 +149,34 @@ jobs:
             ${{ github.workspace }}/artifacts/metadata.env
           if-no-files-found: error
           retention-days: 14
+
+  # One table for the whole run: what built, what fell back, what failed.
+  summary:
+    needs: [setup, build]
+    if: always()
+    runs-on: [self-hosted, m920x]
+    steps:
+      - uses: actions/download-artifact@v4
+        continue-on-error: true    # no reports when setup itself failed
+        with:
+          pattern: report-*
+          path: reports
+      - name: Summarize
+        run: |
+          {
+            echo "## torizon-ab build: channel ${{ needs.setup.outputs.channel }}"
+            echo
+            echo "| machine | backend | result | pins |"
+            echo "|---|---|---|---|"
+            for s in reports/*/status.env; do
+              [ -f "$s" ] || continue
+              ( . "$s"; echo "| $MACHINE | $BACKEND | $RESULT | $PINS |" )
+            done
+            echo
+            echo "build jobs: ${{ needs.build.result }}"
+          } | tee summary.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: summary
+          path: summary.md
+          retention-days: 30

@@ -58,6 +58,24 @@ Our tree mirrors upstream's 1:1: `torizon-ab/<vendor>/<channel>.xml` includes
 | `integration.xml` | `torizon/<vendor>/integration.xml` | floating revs; builds add `use-head-next` |
 | `next.xml`        | `torizon/<vendor>/next.xml`        | floating revs; builds add `use-head-next` |
 
+### CI builds and upstream drift
+
+`.github/workflows/build.yml` builds every machine × backend weekly on the
+`integration` channel, where upstream layers float, and on demand. Each combo ends
+in one of three results:
+
+| Result     | Meaning                                                              | Job        |
+|------------|----------------------------------------------------------------------|------------|
+| `ok`       | the branch-tip layers built                                          | green      |
+| `fallback` | the tip broke; `ci/build.sh` rebuilt with the upstream pins of the last good build of that combo and the current `meta-torizon-ab`, and that passed: upstream drift we need to follow | green with a warning; the release notes say so |
+| `failed`   | the fallback broke too (or there was none): our problem, or infrastructure | red        |
+
+The last good pins (`repo manifest -r`) are kept per combo in a `state/` directory
+next to the tree on the build host. Recipes that follow `AUTOREV` under
+`use-head-next` still float in a fallback build. Each job uploads a
+`report-<machine>-<backend>` artifact (errors, the upstream layers that moved since
+the last good build, bitbake logs); the `summary` job puts all combos in one table.
+
 ### Adding a vendor (Jetson/NVIDIA, NXP FRDM, Renesas, …)
 
 Because our layers are vendor-agnostic, a new vendor is a **3-line file** per

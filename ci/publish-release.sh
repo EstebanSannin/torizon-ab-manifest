@@ -23,8 +23,13 @@ hdr=(-H "Authorization: Bearer $GH_TOKEN"
      -H "Accept: application/vnd.github+json"
      -H "X-GitHub-Api-Version: 2022-11-28")
 
-body="$(printf 'Automated build (torizon-ab pipeline).\n\n- machine: `%s`\n- backend: `%s`\n- channel: `%s`\n- os version: `%s`\n\n### SHA256SUMS\n```\n%s\n```\n' \
-  "$MACHINE" "$BACKEND" "$CHANNEL" "$OS_VERSION" "$(cat "$ART_DIR/SHA256SUMS")")"
+# A fallback build (see ci/build.sh) used the upstream pins of the last good one.
+note=""
+if [ "${PINS:-tip}" = last-good ]; then
+  note="$(printf '\n> **Note:** the upstream layers at their branch tip did not build. This build uses the upstream pins of the last good build (%s) with the current meta-torizon-ab.\n' "${LAST_GOOD_DATE:-unknown}")"
+fi
+body="$(printf 'Automated build (torizon-ab pipeline).\n\n- machine: `%s`\n- backend: `%s`\n- channel: `%s`\n- os version: `%s`\n%s\n### SHA256SUMS\n```\n%s\n```\n' \
+  "$MACHINE" "$BACKEND" "$CHANNEL" "$OS_VERSION" "$note" "$(cat "$ART_DIR/SHA256SUMS")")"
 
 # 1) find-or-create the release for this tag.
 #    NB: no `-f` on the lookup — a 404 (tag not yet released) is expected and must
