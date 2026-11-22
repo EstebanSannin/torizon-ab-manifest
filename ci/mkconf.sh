@@ -11,16 +11,19 @@
 # warning: upstream's pinned template can lag behind the pinned layer set (e.g. it
 # still lists meta-toradex-distro, which Torizon OS 8 no longer ships).
 #
-# Usage: ci/mkconf.sh <tree-root> <build-dir> [channel]
+# Usage: ci/mkconf.sh <tree-root> <build-dir> [channel] [sources]
 #   <tree-root> is the host path of the synced tree; it is mounted at /workdir
 #   inside crops, which is what the generated files refer to.
 #   [channel] release (default) | integration | next.
+#   [sources] head (default) | pinned. "pinned" leaves out use-head-next on a
+#   floating channel, so recipes build the source revisions their layers pin.
 set -euo pipefail
 
 CI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TREE="${1:?tree root}"
 BUILD_DIR="${2:?build dir}"
 CHANNEL="${3:-release}"
+SOURCES="${4:-head}"
 TEMPLATE="$TREE/layers/meta-torizon-bsp/conf/template/bblayers.conf"
 OVERLAY_LAYERS=(meta-swupdate meta-rauc meta-torizon-ab)
 
@@ -55,6 +58,7 @@ printf 'DL_DIR = "/dl"\nSSTATE_DIR = "/sstate"\nBB_HASHSERVE_DB_DIR = "${SSTATE_
 # for its integration.xml/next.xml (it detects them by the manifest's file name;
 # CI passes the channel explicitly instead).
 case "$CHANNEL" in
-  integration|next) printf '\nDISTROOVERRIDES .= ":use-head-next"\nINHERIT += "buildhistory"\n' \
-                      >> "$BUILD_DIR/conf/auto.conf" ;;
+  integration|next)
+    [ "$SOURCES" = pinned ] || printf '\nDISTROOVERRIDES .= ":use-head-next"\n' >> "$BUILD_DIR/conf/auto.conf"
+    printf '\nINHERIT += "buildhistory"\n' >> "$BUILD_DIR/conf/auto.conf" ;;
 esac

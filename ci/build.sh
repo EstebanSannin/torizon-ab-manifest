@@ -27,10 +27,12 @@
 #   FALLBACK        auto (default) | off. On a floating channel (integration,
 #                   next), a failed build is retried with the upstream layers at
 #                   the pins of the last good build of this combo and our layer
-#                   at the revision just synced. If that passes, upstream drift
-#                   broke the tip: the build is kept (PINS=last-good in
-#                   metadata.env) and the report says what changed. Recipes that
-#                   follow AUTOREV under use-head-next still float.
+#                   at the revision just synced, without use-head-next: recipes
+#                   build the source revisions their layers pin, not the newest
+#                   upstream ones. If that passes, upstream drift broke the tip:
+#                   the build is kept (PINS=last-good in metadata.env) and the
+#                   report says what changed. Recipes whose SRCREV is AUTOREV
+#                   outright still float.
 #
 # The report ($REPORT_DIR) holds status.env (RESULT=ok|fallback|failed),
 # errors.txt (the failing tasks and errors of the tip build) and
@@ -96,9 +98,10 @@ sync_tree() {
 
 # 2) build in crops, reusing shared caches. Generate the conf from the synced
 #    tree (do NOT rely on oe-init defaults — those are poky and miss the Toradex +
-#    overlay layers). The bitbake output goes to $1 as well.
+#    overlay layers). The bitbake output goes to $1 as well; $2 is mkconf's
+#    [sources] (head | pinned).
 build() {
-  "$CI_DIR/mkconf.sh" "$TREE" "$BUILD_DIR" "$CHANNEL" || return
+  "$CI_DIR/mkconf.sh" "$TREE" "$BUILD_DIR" "$CHANNEL" "${2:-head}" || return
   docker run --rm --name "abci-$$" \
     -v "$TREE:/workdir" \
     -v "$SHARED_CACHES/downloads:/dl" \
@@ -167,10 +170,10 @@ if ! build "$REPORT_DIR/bitbake-tip.log"; then
   ours="$(git -C layers/meta-torizon-ab rev-parse HEAD)"
   sed "/path=\"layers\/meta-torizon-ab\"/ s/revision=\"[0-9a-f]*\"/revision=\"$ours\"/" \
     "$LAST_GOOD" > "$REPORT_DIR/fallback-pins.xml"
-  echo "== tip build failed; retrying with the last good upstream pins ($LAST_GOOD) =="
+  echo "== tip build failed; retrying with the last good upstream pins ($LAST_GOOD), without use-head-next =="
   PINS=last-good
   sync_tree "$REPORT_DIR/fallback-pins.xml"
-  if ! build "$REPORT_DIR/bitbake-last-good.log"; then
+  if ! build "$REPORT_DIR/bitbake-last-good.log" pinned; then
     report failed last-good
     echo "== build failed on the last good upstream pins too: the breakage is ours ==" >&2
     exit 1

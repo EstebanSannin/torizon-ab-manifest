@@ -26,7 +26,7 @@ hdr=(-H "Authorization: Bearer $GH_TOKEN"
 # A fallback build (see ci/build.sh) used the upstream pins of the last good one.
 note=""
 if [ "${PINS:-tip}" = last-good ]; then
-  note="$(printf '\n> **Note:** the upstream layers at their branch tip did not build. This build uses the upstream pins of the last good build (%s) with the current meta-torizon-ab.\n' "${LAST_GOOD_DATE:-unknown}")"
+  note="$(printf '\n> **Note:** the upstream layers at their branch tip did not build. This build uses the upstream pins of the last good build (%s), the source revisions those layers pin (no use-head-next) and the current meta-torizon-ab.\n' "${LAST_GOOD_DATE:-unknown}")"
 fi
 body="$(printf 'Automated build (torizon-ab pipeline).\n\n- machine: `%s`\n- backend: `%s`\n- channel: `%s`\n- os version: `%s`\n%s\n### SHA256SUMS\n```\n%s\n```\n' \
   "$MACHINE" "$BACKEND" "$CHANNEL" "$OS_VERSION" "$note" "$(cat "$ART_DIR/SHA256SUMS")")"

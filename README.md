@@ -71,8 +71,10 @@ in one of three results:
 | `failed`   | the fallback broke too (or there was none): our problem, or infrastructure | red        |
 
 The last good pins (`repo manifest -r`) are kept per combo in a `state/` directory
-next to the tree on the build host. Recipes that follow `AUTOREV` under
-`use-head-next` still float in a fallback build. Each job uploads a
+next to the tree on the build host. The fallback build also leaves out
+`use-head-next`, so recipes build the source revisions their layers pin (the ones
+their crate lists and patches were written for) instead of the newest upstream
+ones. Recipes whose `SRCREV` is `AUTOREV` outright still float. Each job uploads a
 `report-<machine>-<backend>` artifact (errors, the upstream layers that moved since
 the last good build, bitbake logs); the `summary` job puts all combos in one table.
 
